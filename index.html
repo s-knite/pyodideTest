@@ -66,36 +66,36 @@ final_result_string + "\\n\\n--- Your Function's Output ---\\n" + user_prints
 `;
 
     async function setupPyodide() {
-        // Initialize Pyodide
         let pyodide = await loadPyodide();
         loader.textContent = 'Python runtime loaded! Ready to run code.';
         runButton.disabled = false;
         return pyodide;
     }
 
-    // Start loading Pyodide as soon as the page loads
     const pyodidePromise = setupPyodide();
 
     runButton.addEventListener('click', async () => {
         const pyodide = await pyodidePromise;
         const userCode = codeInput.value;
         resultsOutput.textContent = 'Running tests...';
+        
+        // THIS IS THE FIX: Declare 'output' here, outside the try block.
+        let output = '';
 
         try {
             // Run the user's code to make their function available
             pyodide.runPython(userCode);
             
-            // Run the tests and capture the final string that the Python code returns
-            const output = pyodide.runPython(testCode);
-            
-            // THIS IS THE FIX:
-            // Explicitly set the textContent to the captured output.
-            resultsOutput.textContent = output;
+            // Assign the captured string to the 'output' variable
+            output = pyodide.runPython(testCode);
 
         } catch (error) {
-            // This will catch syntax errors in the user's code before the tests run
-            resultsOutput.textContent = "An error occurred: \n" + error.toString();
+            // This will catch syntax errors in the user's code
+            output = "An error occurred: \n" + error.toString();
         }
+        
+        // Now 'output' is accessible here and can be displayed
+        resultsOutput.textContent = output;
     });
 </script>
 
