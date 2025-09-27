@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Frontend Python Code Checker</title>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
+        textarea { width: 100%; height: 200px; margin-bottom: 1em; font-family: monospace; }
+        button { padding: 10px 15px; cursor: pointer; }
+        pre { background-color: #f4f4f4; padding: 1em; border: 1px solid #ddd; white-space: pre-wrap; }
+        #loader { font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Python Challenge (Frontend)</h1>
+    <p>Write a function called `add_two_numbers(a, b)` that returns their sum.</p>
+    
+    <textarea id="codeInput" placeholder="Your Python code here..."></textarea>
+    <button id="runButton" disabled>Run Code</button>
+    
+    <h2>Results:</h2>
+    <div id="loader">Loading Python runtime... Please wait.</div>
+    <pre id="resultsOutput"></pre>
+
+<script>
+    const codeInput = document.getElementById('codeInput');
+    const runButton = document.getElementById('runButton');
+    const resultsOutput = document.getElementById('resultsOutput');
+    const loader = document.getElementById('loader');
+
+    // The predefined test code to run against the user's submission
+    const testCode = `
+import sys
+from io import StringIO
+
+# Capture print output
+old_stdout = sys.stdout
+sys.stdout = mystdout = StringIO()
+
+def run_tests():
+    passed_tests = 0
+    total_tests = 2
+    output = ""
+
+    try:
+        # Test 1
+        if add_two_numbers(2, 3) == 5:
+            passed_tests += 1
+            output += "Test 1 (2 + 3): Passed ✅\\n"
+        else:
+            output += f"Test 1 (2 + 3): Failed ❌ (Expected 5, got {add_two_numbers(2, 3)})\\n"
+            
+        # Test 2
+        if add_two_numbers(-1, 1) == 0:
+            passed_tests += 1
+            output += "Test 2 (-1 + 1): Passed ✅\\n"
+        else:
+            output += f"Test 2 (-1 + 1): Failed ❌ (Expected 0, got {add_two_numbers(-1, 1)})\\n"
+
+        output += f"\\nResult: {passed_tests}/{total_tests} tests passed."
+
+    except NameError:
+        output = "Execution Error: Make sure your function is named 'add_two_numbers'."
+    except Exception as e:
+        output = f"An error occurred during testing: {e}"
+
+    return output
+
+# Run the tests and print the final result
+final_output = run_tests()
+sys.stdout = old_stdout
+print(final_output)
+print("Any printed output from your function:\\n" + mystdout.getvalue())
+`;
+
+    async function main() {
+        // Initialize Pyodide
+        let pyodide = await loadPyodide();
+        loader.textContent = 'Python runtime loaded! Ready to run code.';
+        runButton.disabled = false;
+        return pyodide;
+    }
+
+    // Start loading Pyodide as soon as the page loads
+    let pyodideReadyPromise = main();
+
+    runButton.addEventListener('click', async () => {
+        let pyodide = await pyodideReadyPromise;
+        const userCode = codeInput.value;
+        resultsOutput.textContent = 'Running tests...';
+
+        try {
+            // First, run the user's code to define the function
+            pyodide.runPython(userCode);
+            // Then, run our tests which will use that function
+            let output = pyodide.runPython(testCode);
+            resultsOutput.textContent = output;
+        } catch (error) {
+            // Catch syntax errors or other issues in the user's code
+            resultsOutput.textContent = "An error occurred: \n" + error.toString();
+        }
+    });
+</script>
+
+</body>
+</html>
