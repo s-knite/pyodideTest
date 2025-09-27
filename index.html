@@ -29,52 +29,43 @@
     const resultsOutput = document.getElementById('resultsOutput');
     const loader = document.getElementById('loader');
 
-    // The predefined test code to run against the user's submission
+    // This Python code is structured to return a single string at the end.
     const testCode = `
 import sys
 from io import StringIO
 
-# Capture print output
-old_stdout = sys.stdout
-sys.stdout = mystdout = StringIO()
+# Capture any output from the user's function (e.g., print statements)
+original_stdout = sys.stdout
+sys.stdout = captured_output = StringIO()
 
-def run_tests():
-    passed_tests = 0
-    total_tests = 2
-    output = ""
+final_result_string = ""
 
-    try:
-        # Test 1
-        if add_two_numbers(2, 3) == 5:
-            passed_tests += 1
-            output += "Test 1 (2 + 3): Passed ✅\\n"
-        else:
-            output += f"Test 1 (2 + 3): Failed ❌ (Expected 5, got {add_two_numbers(2, 3)})\\n"
-            
-        # Test 2
-        if add_two_numbers(-1, 1) == 0:
-            passed_tests += 1
-            output += "Test 2 (-1 + 1): Passed ✅\\n"
-        else:
-            output += f"Test 2 (-1 + 1): Failed ❌ (Expected 0, got {add_two_numbers(-1, 1)})\\n"
+try:
+    # --- Test Cases ---
+    assert 'add_two_numbers' in globals(), "Function 'add_two_numbers' not found."
+    
+    # Test 1
+    assert add_two_numbers(2, 3) == 5, f"Test 1 Failed: Expected 5, got {add_two_numbers(2, 3)}"
+    
+    # Test 2
+    assert add_two_numbers(-1, 1) == 0, f"Test 2 Failed: Expected 0, got {add_two_numbers(-1, 1)}"
 
-        output += f"\\nResult: {passed_tests}/{total_tests} tests passed."
+    final_result_string = "✅ All tests passed!"
 
-    except NameError:
-        output = "Execution Error: Make sure your function is named 'add_two_numbers'."
-    except Exception as e:
-        output = f"An error occurred during testing: {e}"
+except Exception as e:
+    final_result_string = f"❌ A test failed or an error occurred:\\n{e}"
 
-    return output
+finally:
+    # Restore the original stdout
+    sys.stdout = original_stdout
+    user_prints = captured_output.getvalue()
 
-# Run the tests and print the final result
-final_output = run_tests()
-sys.stdout = old_stdout
-print(final_output)
-print("Any printed output from your function:\\n" + mystdout.getvalue())
+# This is the final expression that will be returned to JavaScript.
+# It combines the test results with any output the user's code printed.
+final_result_string + "\\n\\n--- Your Function's Output ---\\n" + user_prints
 `;
 
-    async function main() {
+    async function setupPyodide() {
         // Initialize Pyodide
         let pyodide = await loadPyodide();
         loader.textContent = 'Python runtime loaded! Ready to run code.';
@@ -83,21 +74,26 @@ print("Any printed output from your function:\\n" + mystdout.getvalue())
     }
 
     // Start loading Pyodide as soon as the page loads
-    let pyodideReadyPromise = main();
+    const pyodidePromise = setupPyodide();
 
     runButton.addEventListener('click', async () => {
-        let pyodide = await pyodideReadyPromise;
+        const pyodide = await pyodidePromise;
         const userCode = codeInput.value;
         resultsOutput.textContent = 'Running tests...';
 
         try {
-            // First, run the user's code to define the function
+            // Run the user's code to make their function available
             pyodide.runPython(userCode);
-            // Then, run our tests which will use that function
-            let output = pyodide.runPython(testCode);
+            
+            // Run the tests and capture the final string that the Python code returns
+            const output = pyodide.runPython(testCode);
+            
+            // THIS IS THE FIX:
+            // Explicitly set the textContent to the captured output.
             resultsOutput.textContent = output;
+
         } catch (error) {
-            // Catch syntax errors or other issues in the user's code
+            // This will catch syntax errors in the user's code before the tests run
             resultsOutput.textContent = "An error occurred: \n" + error.toString();
         }
     });
