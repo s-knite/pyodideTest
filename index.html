@@ -1,103 +1,226 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Frontend Python Code Checker</title>
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.25.1/full/pyodide.js"></script>
-    <style>
-        body { font-family: sans-serif; padding: 2em; max-width: 800px; margin: auto; }
-        textarea { width: 100%; height: 200px; margin-bottom: 1em; font-family: monospace; }
-        button { padding: 10px 15px; cursor: pointer; }
-        pre { background-color: #f4f4f4; padding: 1em; border: 1px solid #ddd; white-space: pre-wrap; }
-        #loader { font-weight: bold; }
-    </style>
-</head>
-<body>
-    <h1>Python Challenge (Frontend)</h1>
-    <p>Write a function called `add_two_numbers(a, b)` that returns their sum.</p>
-    
-    <textarea id="codeInput" placeholder="Your Python code here..."></textarea>
-    <button id="runButton" disabled>Run Code</button>
-    
-    <h2>Results:</h2>
-    <div id="loader">Loading Python runtime... Please wait.</div>
-    <pre id="resultsOutput"></pre>
+<!doctype html>
+<html>
+  <head>
+      <script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
+	  <style>
+		html {
+		  height: 100%;
+		}
+		body {
+		  padding: 0;
+		  margin: 0;
+		  display: flex;
+		  flex-direction: column;
+		  height: 100%;
+		}
 
-<script>
-    const codeInput = document.getElementById('codeInput');
-    const runButton = document.getElementById('runButton');
-    const resultsOutput = document.getElementById('resultsOutput');
-    const loader = document.getElementById('loader');
+		.nav {
+		  width: 100%;
+		  min-height: 50px;
+		  background: navy;
+		  font-family: Arial, Sans-serif;
+		  color: white;
+		  text-align: right;
+		  padding: 10px 20px;
+		  box-sizing: border-box;
+		}
+		.nav h1 {
+		  margin: 0;
+		}
 
-    // This Python code is structured to return a single string at the end.
-    const testCode = `
-import sys
-from io import StringIO
+		.main {
+		  display: flex;
+		  flex-grow:1;
+		}
+		.main div {
+		  flex-basis: 50%;
+		}
+		.left {
+		  background-color: lightgrey;
+		  
+		  justify-content: center;
+		}
+		.right {
+		  background-color: coral;
+		}
 
-# Capture any output from the user's function (e.g., print statements)
-original_stdout = sys.stdout
-sys.stdout = captured_output = StringIO()
+		.💪center {
+		  display: flex;
+		  align-items: center;
+		  justify-content: center;
+		  flex-direction: column;
+		}
+		#codeWindow {
+		  font-family: monospace;
+		  resize: none;
+		  outline: none;
+		}
+		#loader {
+			font-weight: bold;
+			flex-grow: 0;
+			flex-basis: 0;
+			}
+		#instructions {
+			flex-basis: 0;
+			flex-grow: 0;
+			margin-bottom: 20px;
+		}
+	  </style>
 
-final_result_string = ""
+  </head>
+  <body>
+	<div class="nav">
+	  <h1>POCC</h1>
+	</div>
+	<div class="main">
+	  <div class="left 💪center">
+		<div id="loader">Loading Python runtime... Please wait.</div>
+		<button id="testsButton" disabled>Run Tests</button>
+		<pre id="resultsWindow"></pre>
+	  </div>
+	  <div class="right 💪center">
+		<div id="instructions">
+			<ul>
+				<li>Create a variable called greeting with the value Hello</li>
+				<li>Create a function called greet which takes in a name and says "Hello, [name]!" with the name given</li>
+				<li>Create a function called add which takes two numbers and returns the sum</li>
+			</ul>
+		</div>
+		<textarea name="code-window" id="codeWindow" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
+	  </div>
 
-try:
-    # --- Test Cases ---
-    assert 'add_two_numbers' in globals(), "Function 'add_two_numbers' not found."
-    
-    # Test 1
-    assert add_two_numbers(2, 3) == 5, f"Test 1 Failed: Expected 5, got {add_two_numbers(2, 3)}"
-    
-    # Test 2
-    assert add_two_numbers(-1, 1) == 0, f"Test 2 Failed: Expected 0, got {add_two_numbers(-1, 1)}"
+	</div>
+  </body>
+  <script>
+	const codeInput = document.getElementById('codeWindow');
+	const runButton = document.getElementById('testsButton');
+	const resultsOutput = document.getElementById('resultsWindow');
+	const loader = document.getElementById('loader');
 
-    final_result_string = "✅ All tests passed!"
+	// The new, more comprehensive testCode string
+	const testCode = `
+	import sys
+	import io
+	import inspect
+	from contextlib import redirect_stdout
 
-except Exception as e:
-    final_result_string = f"❌ A test failed or an error occurred:\\n{e}"
+	class TestRunner:
+		def __init__(self,total):
+			self.results = []
+			self.passed = 0
+			self.total = total
+			self.count = 0
 
-finally:
-    # Restore the original stdout
-    sys.stdout = original_stdout
-    user_prints = captured_output.getvalue()
+		def run_test(self, description, success):
+			self.count += 1
+			if success:
+				self.passed += 1
+				self.results.append(f"✅ PASSED: {description}")
+			else:
+				self.results.append(f"❌ FAILED: {description}")
 
-# This is the final expression that will be returned to JavaScript.
-# It combines the test results with any output the user's code printed.
-final_result_string + "\\n\\n--- Your Function's Output ---\\n" + user_prints
-`;
+		def check_variable_exists(self, name, quiet = False):
+			exists = name in globals()
+			if not quiet:
+				self.run_test(f"Variable '{name}' exists.", exists)
+			return exists
 
-    async function setupPyodide() {
-        let pyodide = await loadPyodide();
-        loader.textContent = 'Python runtime loaded! Ready to run code.';
-        runButton.disabled = false;
-        return pyodide;
-    }
+		def check_variable_value(self, name, expected_value):
+			if self.check_variable_exists(name, True):
+				value = globals()[name]
+				self.run_test(f"Variable '{name}' has value '{expected_value}'.", value == expected_value)
 
-    const pyodidePromise = setupPyodide();
+		def check_function_exists(self, name, quiet = False):
+			exists = name in globals() and callable(globals().get(name))
+			if not quiet:
+				self.run_test(f"Function '{name}' exists.", exists)
+			return exists
 
-    runButton.addEventListener('click', async () => {
-        const pyodide = await pyodidePromise;
-        const userCode = codeInput.value;
-        resultsOutput.textContent = 'Running tests...';
-        
-        // THIS IS THE FIX: Declare 'output' here, outside the try block.
-        let output = '';
+		def check_function_parameters(self, name, expected_count):
+			if self.check_function_exists(name, True):
+				func = globals()[name]
+				sig = inspect.signature(func)
+				param_count = len(sig.parameters)
+				self.run_test(f"Function '{name}' has {expected_count} parameter(s).", param_count == expected_count)
 
-        try {
-            // Run the user's code to make their function available
-            pyodide.runPython(userCode);
-            
-            // Assign the captured string to the 'output' variable
-            output = pyodide.runPython(testCode);
+		def check_function_prints(self, name, args, expected_print):
+			if self.check_function_exists(name,True):
+				func = globals()[name]
+				f = io.StringIO()
+				with redirect_stdout(f):
+					func(*args)
+				printed_output = f.getvalue().strip()
+				self.run_test(f"Function '{name}' prints '{expected_print}'.", printed_output == expected_print)
 
-        } catch (error) {
-            // This will catch syntax errors in the user's code
-            output = "An error occurred: \n" + error.toString();
-        }
-        
-        // Now 'output' is accessible here and can be displayed
-        resultsOutput.textContent = output;
-    });
+		def check_function_returns(self, name, args, expected_return):
+			if self.check_function_exists(name,True):
+				func = globals()[name]
+				return_value = func(*args)
+				self.run_test(f"Function '{name}' returns '{expected_return}'.", return_value == expected_return)
+
+		def format_results(self):
+			summary = f"--- Results: {self.passed}/{self.total} tests passed ---\\n"
+			if self.count != self.total:
+				summary += f"Could not run all tests - {self.count} test(s) completed\\n"
+			details = "\\n".join(self.results)
+			return summary + details
+
+	# --- Main Test Execution ---
+	runner = TestRunner(9)
+	try:
+		# 1. Test the GREETING variable
+		runner.check_variable_exists('greeting')
+		runner.check_variable_value('greeting', 'Hello')
+
+		# 2. Test the greet(name) function
+		runner.check_function_exists('greet')
+		runner.check_function_parameters('greet', 1)
+		runner.check_function_prints('greet', args=('Ada',), expected_print='Hello, Ada!')
+		
+		# 3. Test the add(a, b) function
+		runner.check_function_exists('add')
+		runner.check_function_parameters('add', 2)
+		runner.check_function_returns('add', args=(5, 3), expected_return=8)
+		runner.check_function_returns('add', args=(-5, 3), expected_return=-2)
+
+	except Exception as e:
+		runner.results.append(f"\\nCRITICAL ERROR: An error occurred during testing: {e}")
+
+	# This final expression is returned to JavaScript
+	runner.format_results()
+	`;
+
+	async function setupPyodide() {
+		let pyodide = await loadPyodide();
+		loader.textContent = 'Python runtime loaded! Ready to run code.';
+		runButton.disabled = false;
+		return pyodide;
+	}
+
+	const pyodidePromise = setupPyodide();
+
+	runButton.addEventListener('click', async () => {
+		const pyodide = await pyodidePromise;
+		const userCode = codeInput.value;
+		resultsOutput.textContent = 'Running tests...';
+		
+		
+		let output = '';
+		
+		try {
+			// Run the user's code to make their function available
+			pyodide.runPython(userCode);
+			
+			// Assign the captured string to the 'output' variable
+			output = pyodide.runPython(testCode);
+
+		} catch (error) {
+			// This will catch syntax errors in the user's code
+			output = "Code would not run - please test in an IDE";
+		}
+		
+		// Now 'output' is accessible here and can be displayed
+		resultsOutput.textContent = output;
+	});
 </script>
-
-</body>
 </html>
