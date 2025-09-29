@@ -372,7 +372,7 @@
 		const userCode = codeInput.value;
 		resultsOutput.textContent = 'Running tests...';
 		
-		
+		const initialPyodideState = pyodide.pyodide_py._state.save_state();
 		let output = '';
 		
 		try {
@@ -387,6 +387,8 @@
 			// This will catch syntax errors in the user's code
 			output = "Code would not run - please test in an IDE";
 			resultsOutput.textContent = output;
+		} finally {
+			pyodide.pyodide_py._state.restore_state(initialPyodideState);
 		}
 	});
 </script>
