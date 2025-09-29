@@ -304,9 +304,10 @@
 		try {
 			// Run the user's code to make their function available
 			pyodide.runPython(userCode);
-			
+			console.log("User code completed")
 			// Assign the captured string to the 'output' variable
 			output = pyodide.runPython(testCode);
+			console.log(output)
 			createTable(output, resultsWindow);
 		} catch (error) {
 			// This will catch syntax errors in the user's code
