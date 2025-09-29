@@ -99,95 +99,143 @@
 
 	// The new, more comprehensive testCode string
 	const testCode = `
-	import sys
 	import io
 	import inspect
 	from contextlib import redirect_stdout
-
-	class TestRunner:
-		def __init__(self,total):
-			self.results = []
-			self.passed = 0
-			self.total = total
-			self.count = 0
-
-		def run_test(self, description, success):
-			self.count += 1
-			if success:
-				self.passed += 1
-				self.results.append(f"✅ PASSED: {description}")
-			else:
-				self.results.append(f"❌ FAILED: {description}")
-
-		def check_variable_exists(self, name, quiet = False):
-			exists = name in globals()
-			if not quiet:
-				self.run_test(f"Variable '{name}' exists.", exists)
-			return exists
-
-		def check_variable_value(self, name, expected_value):
-			if self.check_variable_exists(name, True):
-				value = globals()[name]
-				self.run_test(f"Variable '{name}' has value '{expected_value}'.", value == expected_value)
-
-		def check_function_exists(self, name, quiet = False):
-			exists = name in globals() and callable(globals().get(name))
-			if not quiet:
-				self.run_test(f"Function '{name}' exists.", exists)
-			return exists
-
-		def check_function_parameters(self, name, expected_count):
-			if self.check_function_exists(name, True):
-				func = globals()[name]
-				sig = inspect.signature(func)
-				param_count = len(sig.parameters)
-				self.run_test(f"Function '{name}' has {expected_count} parameter(s).", param_count == expected_count)
-
-		def check_function_prints(self, name, args, expected_print):
-			if self.check_function_exists(name,True):
-				func = globals()[name]
-				f = io.StringIO()
-				with redirect_stdout(f):
-					func(*args)
-				printed_output = f.getvalue().strip()
-				self.run_test(f"Function '{name}' prints '{expected_print}'.", printed_output == expected_print)
-
-		def check_function_returns(self, name, args, expected_return):
-			if self.check_function_exists(name,True):
-				func = globals()[name]
-				return_value = func(*args)
-				self.run_test(f"Function '{name}' returns '{expected_return}'.", return_value == expected_return)
-
-		def format_results(self):
-			summary = f"--- Results: {self.passed}/{self.total} tests passed ---\\n"
-			if self.count != self.total:
-				summary += f"Could not run all tests - {self.count} test(s) completed\\n"
-			details = "\\n".join(self.results)
-			return summary + details
-
-	# --- Main Test Execution ---
-	runner = TestRunner(9)
+	import json
+	
+	PASSED = 1
+	FAILED = -1
+	SKIPPED = 0
+	
+	class Tester:
+	    def __init__(self):
+	        self.results = []
+	        self.count_tests = 0
+	        self.count_pass = 0
+	        self.count_fail = 0
+	        
+	    def include_result(self, description, success):
+	        #success 1 = pass, 0 = skipped, -1 = failed
+	        result = {}
+	        self.count_tests += 1
+	        result["testNumber"] = self.count_tests
+	        result["testDescription"] = description
+	        if success == PASSED:
+	            self.count_pass += 1
+	            result["testResult"] = "PASSED"
+	            result["resultIcon"] = "🟢"
+	        elif success == FAILED:
+	            self.count_fail += 1
+	            result["testResult"] = "FAILED"
+	            result["resultIcon"] = "🔴"            
+	        else:
+	            result["testResult"] = "SKIPPED"
+	            result["resultIcon"] = "🟡"
+	        self.results.append(result)
+	        
+	    def confirm_variable_exists(self, v_name):
+	        return v_name in globals()
+	    def check_variable_exists(self, v_name):
+	        result = PASSED if self.confirm_variable_exists(v_name) else FAILED
+	        description = f"Check variable with name {v_name} exists."
+	        self.include_result(description ,result)
+	    
+	    def check_variable_value(self,v_name,expected_value):
+	        if self.confirm_variable_exists(v_name):
+	            description = f"Check variable {v_name} has value {expected_value}."
+	            actual_value = globals()[v_name]
+	            result = PASSED if actual_value == expected_value else FAILED
+	            self.include_result(description, result)
+	        else:
+	            self.include_result(f"Unable to find variable {v_name} to check value", SKIPPED)
+	    
+	    def confirm_function_exists(self,f_name):
+	        return f_name in globals() and callable(globals().get(f_name))
+	    def check_function_exists(self,f_name):
+	        result = PASSED if self.confirm_function_exists(f_name) else FAILED
+	        description = f"Check function with name {f_name} exists."
+	        self.include_result(description, result)
+	    
+	    def confirm_function_parameters(self,f_name, expected_count):
+	        if self.confirm_function_exists(f_name):
+	            signature = inspect.signature(globals()[f_name])
+	            actual_count = len(signature.parameters)
+	            return actual_count == expected_count
+	        return False
+	    def check_function_parameters(self,f_name,expected_count):
+	        if self.confirm_function_exists(f_name):
+	            description = f"Check function {f_name} has {expected_count} parameter(s)."
+	            signature = inspect.signature(globals()[f_name])
+	            actual_count = len(signature.parameters)
+	            result = PASSED if actual_count == expected_count else FAILED
+	            self.include_result(description,result)
+	        else:
+	            self.include_result(f"Unable to find function {f_name} to check parameters",SKIPPED)
+	    
+	    def check_function_print(self,f_name,args,expected_print, hide_expected = False):
+	        if self.confirm_function_exists(f_name) and self.confirm_function_parameters(f_name,len(args)):
+	            description = f"Check function outputs. Testing with argument(s): "
+	            for a in args:
+	                description += f"{a}, "
+	            description = description[:-2] + ". "
+	            if not hide_expected:
+	                description += f"Expected output: '{expected_print}'."
+	            func = globals()[f_name]
+	            fake = io.StringIO()
+	            with redirect_stdout(fake):
+	                func(*args)
+	            actual_print = fake.getvalue().strip()
+	            result = PASSED if actual_print == expected_print else FAILED
+	            if result == FAILED and not hide_expected:
+	                description += f" Actual output: '{actual_print}'."
+	            self.include_result(description,result)
+	        else:
+	            self.include_result(f"Unable to check print of function {f_name}, cannot find or parameters don't match.",SKIPPED)
+	    def check_function_return(self, f_name, args, expected_return, hide_expected = False):
+	        if self.confirm_function_exists(f_name) and self.confirm_function_parameters(f_name, len(args)):
+	            description = f"Check function return. Testing with argument(s): "
+	            for a in args:
+	                description += f"{a}, "
+	            description = description[:-2] + ". "
+	            if not hide_expected:
+	                description += f"Expected output: {expected_return}."
+	            func = globals()[f_name]
+	            actual_return = func(*args)
+	            result = PASSED if actual_return == expected_return else FAILED
+	            if result == FAILED and not hide_expected:
+	                description += f" Actual return: {actual_return}."
+	            self.include_result(description,result)
+	        else:
+	            self.include_result(f"Unable to check print of function {f_name}, cannot find or parameters don't match.",SKIPPED)
+	    def json_results(self):
+	        summary = {
+	            "testCount" : self.count_tests,
+	            "passCount" : self.count_pass,
+	            "failCount" : self.count_fail,
+	            "skipCount" : self.count_tests - self.count_pass - self.count_fail,
+	            }
+	        return json.dumps([summary] + self.results)
+	
+	tester = Tester()
 	try:
-		# 1. Test the GREETING variable
-		runner.check_variable_exists('greeting')
-		runner.check_variable_value('greeting', 'Hello')
-
-		# 2. Test the greet(name) function
-		runner.check_function_exists('greet')
-		runner.check_function_parameters('greet', 1)
-		runner.check_function_prints('greet', args=('Ada',), expected_print='Hello, Ada!')
-		
-		# 3. Test the add(a, b) function
-		runner.check_function_exists('add')
-		runner.check_function_parameters('add', 2)
-		runner.check_function_returns('add', args=(5, 3), expected_return=8)
-		runner.check_function_returns('add', args=(-5, 3), expected_return=-2)
-
+	    #example test code
+	    tester.check_variable_exists("greeting")
+	    tester.check_variable_value("greeting", "Hello")
+	    tester.check_variable_value("missing", "oops")
+	    tester.check_function_exists("greet")
+	    tester.check_function_parameters("greet", 1)
+	    tester.check_function_print("greet",args = ["Bob",],expected_print = "Hello, Bob!")
+	    tester.check_function_return("greet", ["Bob",], 1)
 	except Exception as e:
-		runner.results.append(f"\\nCRITICAL ERROR: An error occurred during testing: {e}")
-
-	# This final expression is returned to JavaScript
-	runner.format_results()
+	    tester.results.append({
+	        "testNumber" : -1,
+	        "testDescription" : f"Critical error - test code could not complete: {e}",
+	        "testResult" : FAILED,
+	        "resultIcon" : "🔴" })
+	
+	#final expression returned to JavaScript
+	tester.json_results()
 	`;
 
 	async function setupPyodide() {
