@@ -97,6 +97,52 @@
 	const resultsOutput = document.getElementById('resultsWindow');
 	const loader = document.getElementById('loader');
 
+
+	//js to display results as a table
+	function createTable(jsonString, container) {
+		let data;
+		try {
+			data = JSON.parse(jsonString);
+		} catch (error) {
+			container.innerHTML = £<p>Something went wrong parsing JSON string</p>";
+			return;
+		}
+		// Check the data is an array and not empty
+		if (!Array.isArray(data) || data.length === 0) {
+			container.innerHTML = "<p>No data to display.</p>";
+			return;
+		}
+		//create table elements
+		const table = document.createElement('table');
+		const thead = document.createElement('thead);
+		const headerRow = document.createElement('tr');
+		//add table headers
+		const headers = Object.Keys(data[1]); //assume 0th index is summary data
+		headers.forEach(hText => {
+			const th = document.createElement('th');
+			th.textContent = hText;
+			headerRow.appendChild(th);
+		});
+		thead.appendChild(headerRow);
+		table.appendChild(thead);
+
+		//fill table with data
+		const tbody = document.createElement('tbody');
+		data.slice(1).forEach(obj => {
+			const row = document.createElement('tr');
+			headers.forEach(header => {
+				const cell = document.createelement('td');
+				cell.textContent = obj[header] !== null ? obj[header] : "";
+				row.appendChild(cell);
+			});
+			tbody.appendChild(row);
+		});
+		table.appendChild(tbody);
+
+		//reset container and display
+		container.innerHTML = "";
+		container.appendChild(table);
+	}
 	// The new, more comprehensive testCode string
 	const testCode = `
 	import io
@@ -261,14 +307,12 @@
 			
 			// Assign the captured string to the 'output' variable
 			output = pyodide.runPython(testCode);
-
+			createTable(output, resultsWindow);
 		} catch (error) {
 			// This will catch syntax errors in the user's code
 			output = "Code would not run - please test in an IDE";
+			resultsOutput.textContent = output;
 		}
-		
-		// Now 'output' is accessible here and can be displayed
-		resultsOutput.textContent = output;
 	});
 </script>
 </html>
