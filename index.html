@@ -268,11 +268,14 @@
 	    #example test code
 	    tester.check_variable_exists("greeting")
 	    tester.check_variable_value("greeting", "Hello")
-	    tester.check_variable_value("missing", "oops")
 	    tester.check_function_exists("greet")
 	    tester.check_function_parameters("greet", 1)
 	    tester.check_function_print("greet",args = ["Bob",],expected_print = "Hello, Bob!")
-	    tester.check_function_return("greet", ["Bob",], 1)
+	    tester.check_function_exists("add")
+	    tester.check_function_parameters("add", 2)
+	    tester.check_function_return("add", [3,4], 7)
+	    tester.check_function_return("add", [5,5], 10)
+	    tester.check_function_return("add", [-3,-2], -5)
 	except Exception as e:
 	    tester.results.append({
 	        "testNumber" : -1,
