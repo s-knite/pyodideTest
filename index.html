@@ -131,7 +131,7 @@
 		data.slice(1).forEach(obj => {
 			const row = document.createElement('tr');
 			headers.forEach(header => {
-				const cell = document.createelement('td');
+				const cell = document.createElement('td');
 				cell.textContent = obj[header] !== null ? obj[header] : "";
 				row.appendChild(cell);
 			});
