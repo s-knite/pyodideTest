@@ -5,6 +5,8 @@
 	  <style>
 		html {
 		  height: 100%;
+		  font-size: 1.25rem;
+		  font-family: Sans-serif;
 		}
 		body {
 		  padding: 0;
@@ -65,6 +67,46 @@
 			flex-grow: 0;
 			margin-bottom: 20px;
 		}
+		#resultsWindow table {
+		  margin-top: 5px;
+		  border: 2px solid #FFFFFF;
+		  width: 100%;
+		  text-align: center;
+		  border-collapse: collapse;
+		  overflow: hidden;
+		}
+		#resultsWindow table td, #resultsWindow table th {
+		  border: 1px solid #FFFFFF;
+		  padding: 3px 4px;
+		}
+
+		#resultsWindow table tr:nth-child(even) {
+		  background: #DADADA;
+		}
+		#resultsWindow table thead {
+			border-bottom: 4px solid #333333;
+		}
+		#resultsWindow table thead th {
+		  font-weight: bold;
+		  color: #333333;
+		  text-align: center;
+		}
+		.resultRow {
+			opacity: 0; /* Start rows as invisible */
+			animation: fadeInUp 0.5s ease-out forwards;
+		}
+		
+		@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
 	  </style>
 
   </head>
@@ -76,7 +118,7 @@
 	  <div class="left 💪center">
 		<div id="loader">Loading Python runtime... Please wait.</div>
 		<button id="testsButton" disabled>Run Tests</button>
-		<pre id="resultsWindow"></pre>
+		<div id="resultsWindow"></div>
 	  </div>
 	  <div class="right 💪center">
 		<div id="instructions">
@@ -86,7 +128,7 @@
 				<li>Create a function called add which takes two numbers and returns the sum</li>
 			</ul>
 		</div>
-		<textarea name="code-window" id="codeWindow" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
+		<textarea name="code-window" id="codeWindow" spellcheck="false" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
 	  </div>
 
 	</div>
@@ -96,6 +138,32 @@
 	const runButton = document.getElementById('testsButton');
 	const resultsOutput = document.getElementById('resultsWindow');
 	const loader = document.getElementById('loader');
+	codeInput.addEventListener('keydown', function(e) {
+	//allow tab indent in textarea
+	if (e.key == 'Tab') {
+		e.preventDefault();
+		var start = this.selectionStart;
+		var end = this.selectionEnd;
+
+		// set textarea value to: text before caret + tab + text after caret
+		this.value = this.value.substring(0, start) +
+		  "    " + this.value.substring(end);
+
+		// put caret at right position again
+		this.selectionStart =
+		  this.selectionEnd = start + 4;
+		}
+	});
+	function formatCamelCase(camelCaseString) {
+	  // 1. Insert a space before any uppercase letter.
+	  // The regular expression finds a lowercase letter followed by an uppercase letter.
+	  const spacedString = camelCaseString.replace(/([a-z])([A-Z])/g, '$1 $2');
+	  
+	  // 2. Capitalize the first letter and return the result.
+	  const finalString = spacedString.charAt(0).toUpperCase() + spacedString.slice(1);
+	  
+	  return finalString;
+	}
 
 
 	//js to display results as a table
@@ -120,7 +188,8 @@
 		const headers = Object.keys(data[1]); //assume 0th index is summary data
 		headers.forEach(hText => {
 			const th = document.createElement('th');
-			th.textContent = hText;
+			th.textContent = formatCamelCase(hText);
+			th.classList.add(hText);
 			headerRow.appendChild(th);
 		});
 		thead.appendChild(headerRow);
@@ -135,6 +204,8 @@
 				cell.textContent = obj[header] !== null ? obj[header] : "";
 				row.appendChild(cell);
 			});
+			row.style.animationDelay = (obj["testNumber"] / 5) + "s";
+			row.classList.add("resultRow");
 			tbody.appendChild(row);
 		});
 		table.appendChild(tbody);
@@ -253,7 +324,7 @@
 	                description += f" Actual return: {actual_return}."
 	            self.include_result(description,result)
 	        else:
-	            self.include_result(f"Unable to check print of function {f_name}, cannot find or parameters don't match.",SKIPPED)
+	            self.include_result(f"Unable to check return of function {f_name}, cannot find or parameters don't match.",SKIPPED)
 	    def json_results(self):
 	        summary = {
 	            "testCount" : self.count_tests,
