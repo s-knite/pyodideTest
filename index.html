@@ -216,185 +216,183 @@
 	}
 	// The new, more comprehensive testCode string
 	const testCode = `
-	import io
-	import inspect
-	from io import StringIO
-	import json
-	from unittest.mock import patch
-	import random
-	from random import randint
-	
-	PASSED = 1
-	FAILED = -1
-	SKIPPED = 0
-	
-	#used to ignor patching random if not needed
-	def nevermind(*args):
-	    pass
-	
-	class Tester:
-	    def __init__(self):
-	        self.results = []
-	        self.count_tests = 0
-	        self.count_pass = 0
-	        self.count_fail = 0
-	        
-	    def include_result(self, description, success):
-	        #success 1 = pass, 0 = skipped, -1 = failed
-	        result = {}
-	        self.count_tests += 1
-	        result["testNumber"] = self.count_tests
-	        result["testDescription"] = description
-	        if success == PASSED:
-	            self.count_pass += 1
-	            result["testResult"] = "PASSED"
-	            result["resultIcon"] = "🟢"
-	        elif success == FAILED:
-	            self.count_fail += 1
-	            result["testResult"] = "FAILED"
-	            result["resultIcon"] = "🔴"            
-	        else:
-	            result["testResult"] = "SKIPPED"
-	            result["resultIcon"] = "🟡"
-	        self.results.append(result)
-	        
-	    def confirm_variable_exists(self, v_name):
-	        return v_name in globals()
-	    
-	    def check_variable_exists(self, v_name):
-	        result = PASSED if self.confirm_variable_exists(v_name) else FAILED
-	        description = f"Check variable with name {v_name} exists."
-	        self.include_result(description ,result)
-	    
-	    def check_variable_value(self,v_name,expected_value):
-	        if self.confirm_variable_exists(v_name):
-	            description = f"Check variable {v_name} has value {expected_value}."
-	            actual_value = globals()[v_name]
-	            result = PASSED if actual_value == expected_value else FAILED
-	            self.include_result(description, result)
-	        else:
-	            self.include_result(f"Unable to find variable {v_name} to check value", SKIPPED)
-	    
-	    def confirm_function_exists(self,f_name):
-	        return f_name in globals() and callable(globals().get(f_name))
-	    
-	    def check_function_exists(self,f_name):
-	        result = PASSED if self.confirm_function_exists(f_name) else FAILED
-	        description = f"Check function with name {f_name} exists."
-	        self.include_result(description, result)
-	    
-	    def confirm_function_parameters(self,f_name, expected_count):
-	        if self.confirm_function_exists(f_name):
-	            signature = inspect.signature(globals()[f_name])
-	            actual_count = len(signature.parameters)
-	            return actual_count == expected_count
-	        return False
-	    
-	    def check_function_parameters(self,f_name,expected_count):
-	        if self.confirm_function_exists(f_name):
-	            description = f"Check function {f_name} has {expected_count} parameter(s)."
-	            signature = inspect.signature(globals()[f_name])
-	            actual_count = len(signature.parameters)
-	            result = PASSED if actual_count == expected_count else FAILED
-	            self.include_result(description,result)
-	        else:
-	            self.include_result(f"Unable to find function {f_name} to check parameters",SKIPPED)
-	    
-	    def full_check(self,f_name,args= [],inputs = [] ,randoms = [],e_out = None,e_return = None):
-	        if self.confirm_function_parameters(f_name,len(args)):
-	            #Build description
-	            description = f"Testing function {f_name} "
-	            if len(args) > 0:
-	                description += f"using arguments {args} "
-	            if len(inputs) > 0:
-	                description += f"with inputs {inputs} "
-	            description = description[:-1] + ". "
-	            #ignores if patching random not needed
-	            if len(randoms) > 0:
-	                #cover use of both random.randint and randint
-	                rand1 = "random.randint"
-	                rand2 = "__main__.randint"
-	            else:
-	                rand1 = "__main__.nevermind"
-	                rand2 = "__main__.nevermind"
-	            #patch inputs, print and random
-	            with (  patch("builtins.input", side_effect=inputs),
-	                    patch("sys.stdout", new=StringIO()) as fake_out,
-	                    patch(rand1, side_effect=randoms),
-	                    patch(rand2, side_effect=randoms)):
-	                try:
-	                    #run code to test
-	                    actual_return = globals()[f_name](*args)
-	                except StopIteration:
-	                    #gets caught if runs out of inputs or random numbers
-	                    result = "Failed"
-	                    description = f"Too many inputs or too many random numbers when testing {f_name}."
-	                    self.include_result(description,FAILED)
-	                    return
-	            actual_output = fake_out.getvalue().strip()
-	            result = PASSED
-	            #check for matching output
-	            if e_out != None and e_out != fake_out.getvalue().strip():
-	                description += f"Actual output does not match expected output\nExcpected: {e_out}\nGot: {actual_output}"
-	                result = FAILED
-	            #check for matching return
-	            if e_return != None and e_return != actual_return:
-	                description += f"Return value doesn't match.\nExpected return: {e_return} Got: {actual_return}"
-	                result = FAILED
-	            if result == PASSED:
-	                description += "Test passed."
-	        else:
-	            #Doesn't run test if parameters or function name doesn't match
-	            result = SKIPPED
-	            description = f"Unable to test function {f_name}. Could not find or parameters don't match"
-	        self.include_result(description,result)
-	
-	    def json_results(self):
-	        summary = {
-	            "testCount" : self.count_tests,
-	            "passCount" : self.count_pass,
-	            "failCount" : self.count_fail,
-	            "skipCount" : self.count_tests - self.count_pass - self.count_fail,
-	            }
-	        return json.dumps([summary] + self.results)
-	
-	tester = Tester()
-	try:
-	    #example test code
-	    #full check arguments:
-	    #f_name : function name to test as a string
-	    #args : list of arguments
-	    #inputs : list of strings to use for input calls
-	    #randoms : list of ints to use for randint calls
-	    #e_out : expected output from print statements combined into a single string
-	    #e_return : expected return value from runnign function
-	    tester.check_variable_exists("greeting")
-	    tester.check_variable_value("greeting", "Hello")
-	    tester.check_function_exists("greet")
-	    tester.check_function_parameters("greet", 1)
-	    tester.full_check("greet", args = ["Bob",], e_out = "Hello, Bob!")
-	    tester.check_function_exists("add")
-	    tester.check_function_parameters("add", 2)
-	    tester.full_check("add", args = [3,4], e_return = 7)
-	    tester.full_check("add", args = [5,5], e_return = 10)
-	    tester.full_check("add", args = [-3,-2], e_return = -5)
-	except Exception as e:
-	    tester.results.append({
-	        "testNumber" : -1,
-	        "testDescription" : f"Critical error - test code could not complete: {e}",
-	        "testResult" : FAILED,
-	        "resultIcon" : "🔴" })
-	
-	#final expression returned to JavaScript
-	tester.json_results()
-	
-	
-	##just for debugging in python
-	# for t in list(tester.results):
-	#     for k,v in t.items():
-	#         print(k, ":", v)
-	
+import io
+import inspect
+from io import StringIO
+import json
+from unittest.mock import patch
+import random
+from random import randint
 
+PASSED = 1
+FAILED = -1
+SKIPPED = 0
+
+#used to ignor patching random if not needed
+def nevermind(*args):
+	pass
+
+class Tester:
+	def __init__(self):
+		self.results = []
+		self.count_tests = 0
+		self.count_pass = 0
+		self.count_fail = 0
+		
+	def include_result(self, description, success):
+		#success 1 = pass, 0 = skipped, -1 = failed
+		result = {}
+		self.count_tests += 1
+		result["testNumber"] = self.count_tests
+		result["testDescription"] = description
+		if success == PASSED:
+			self.count_pass += 1
+			result["testResult"] = "PASSED"
+			result["resultIcon"] = "🟢"
+		elif success == FAILED:
+			self.count_fail += 1
+			result["testResult"] = "FAILED"
+			result["resultIcon"] = "🔴"            
+		else:
+			result["testResult"] = "SKIPPED"
+			result["resultIcon"] = "🟡"
+		self.results.append(result)
+		
+	def confirm_variable_exists(self, v_name):
+		return v_name in globals()
+	
+	def check_variable_exists(self, v_name):
+		result = PASSED if self.confirm_variable_exists(v_name) else FAILED
+		description = f"Check variable with name {v_name} exists."
+		self.include_result(description ,result)
+	
+	def check_variable_value(self,v_name,expected_value):
+		if self.confirm_variable_exists(v_name):
+			description = f"Check variable {v_name} has value {expected_value}."
+			actual_value = globals()[v_name]
+			result = PASSED if actual_value == expected_value else FAILED
+			self.include_result(description, result)
+		else:
+			self.include_result(f"Unable to find variable {v_name} to check value", SKIPPED)
+	
+	def confirm_function_exists(self,f_name):
+		return f_name in globals() and callable(globals().get(f_name))
+	
+	def check_function_exists(self,f_name):
+		result = PASSED if self.confirm_function_exists(f_name) else FAILED
+		description = f"Check function with name {f_name} exists."
+		self.include_result(description, result)
+	
+	def confirm_function_parameters(self,f_name, expected_count):
+		if self.confirm_function_exists(f_name):
+			signature = inspect.signature(globals()[f_name])
+			actual_count = len(signature.parameters)
+			return actual_count == expected_count
+		return False
+	
+	def check_function_parameters(self,f_name,expected_count):
+		if self.confirm_function_exists(f_name):
+			description = f"Check function {f_name} has {expected_count} parameter(s)."
+			signature = inspect.signature(globals()[f_name])
+			actual_count = len(signature.parameters)
+			result = PASSED if actual_count == expected_count else FAILED
+			self.include_result(description,result)
+		else:
+			self.include_result(f"Unable to find function {f_name} to check parameters",SKIPPED)
+	
+	def full_check(self,f_name,args= [],inputs = [] ,randoms = [],e_out = None,e_return = None):
+		if self.confirm_function_parameters(f_name,len(args)):
+			#Build description
+			description = f"Testing function {f_name} "
+			if len(args) > 0:
+				description += f"using arguments {args} "
+			if len(inputs) > 0:
+				description += f"with inputs {inputs} "
+			description = description[:-1] + ". "
+			#ignores if patching random not needed
+			if len(randoms) > 0:
+				#cover use of both random.randint and randint
+				rand1 = "random.randint"
+				rand2 = "__main__.randint"
+			else:
+				rand1 = "__main__.nevermind"
+				rand2 = "__main__.nevermind"
+			#patch inputs, print and random
+			with (  patch("builtins.input", side_effect=inputs),
+					patch("sys.stdout", new=StringIO()) as fake_out,
+					patch(rand1, side_effect=randoms),
+					patch(rand2, side_effect=randoms)):
+				try:
+					#run code to test
+					actual_return = globals()[f_name](*args)
+				except StopIteration:
+					#gets caught if runs out of inputs or random numbers
+					result = "Failed"
+					description = f"Too many inputs or too many random numbers when testing {f_name}."
+					self.include_result(description,FAILED)
+					return
+			actual_output = fake_out.getvalue().strip()
+			result = PASSED
+			#check for matching output
+			if e_out != None and e_out != fake_out.getvalue().strip():
+				description += f"Actual output does not match expected output\\nExcpected: {e_out}\\nGot: {actual_output}"
+				result = FAILED
+			#check for matching return
+			if e_return != None and e_return != actual_return:
+				description += f"Return value doesn't match.\\nExpected return: {e_return} Got: {actual_return}"
+				result = FAILED
+			if result == PASSED:
+				description += "Test passed."
+		else:
+			#Doesn't run test if parameters or function name doesn't match
+			result = SKIPPED
+			description = f"Unable to test function {f_name}. Could not find or parameters don't match"
+		self.include_result(description,result)
+
+	def json_results(self):
+		summary = {
+			"testCount" : self.count_tests,
+			"passCount" : self.count_pass,
+			"failCount" : self.count_fail,
+			"skipCount" : self.count_tests - self.count_pass - self.count_fail,
+			}
+		return json.dumps([summary] + self.results)
+
+tester = Tester()
+try:
+	#example test code
+	#full check arguments:
+	#f_name : function name to test as a string
+	#args : list of arguments
+	#inputs : list of strings to use for input calls
+	#randoms : list of ints to use for randint calls
+	#e_out : expected output from print statements combined into a single string
+	#e_return : expected return value from runnign function
+	tester.check_variable_exists("greeting")
+	tester.check_variable_value("greeting", "Hello")
+	tester.check_function_exists("greet")
+	tester.check_function_parameters("greet", 1)
+	tester.full_check("greet", args = ["Bob",], e_out = "Hello, Bob!")
+	tester.check_function_exists("add")
+	tester.check_function_parameters("add", 2)
+	tester.full_check("add", args = [3,4], e_return = 7)
+	tester.full_check("add", args = [5,5], e_return = 10)
+	tester.full_check("add", args = [-3,-2], e_return = -5)
+except Exception as e:
+	tester.results.append({
+		"testNumber" : -1,
+		"testDescription" : f"Critical error - test code could not complete: {e}",
+		"testResult" : FAILED,
+		"resultIcon" : "🔴" })
+
+#final expression returned to JavaScript
+tester.json_results()
+
+
+##just for debugging in python
+# for t in list(tester.results):
+#     for k,v in t.items():
+#         print(k, ":", v)
 	`;
 
 	async function setupPyodide() {
@@ -424,6 +422,7 @@
 			createTable(output, resultsWindow);
 		} catch (error) {
 			// This will catch syntax errors in the user's code
+			console.log(error)
 			output = "Code would not run - please test in an IDE";
 			resultsOutput.textContent = output;
 		} finally {
