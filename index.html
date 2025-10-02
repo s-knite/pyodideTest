@@ -1,137 +1,247 @@
 <!doctype html>
 <html>
   <head>
-      <script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
-	  <style>
-		html {
-		  height: 100%;
-		  font-size: 1.25rem;
-		  font-family: Sans-serif;
-		}
-		body {
-		  padding: 0;
-		  margin: 0;
-		  display: flex;
-		  flex-direction: column;
-		  height: 100%;
-		}
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Source+Code+Pro&display=swap" rel="stylesheet">
+<style>
+    /* --- 1. Modern Theme & Color Palette --- */
+    :root {
+        --dark-blue: #2c3e50;
+        --medium-blue: #34495e;
+        --light-grey: #ecf0f1;
+        --accent-green: #27ae60;
+        --accent-green-hover: #2ecc71;
+        --text-light: #ffffff;
+        --text-dark: #333333;
+        --border-color: #bdc3c7;
+    }
+    *, *:before, *:after {
+        box-sizing: inherit;
+    }
+    html {
+        height: 100%;
+        font-size: 1.2rem;
+        font-family: 'Poppins', sans-serif;
+		box-sizing: border-box;
+    }
 
-		.nav {
-		  width: 100%;
-		  min-height: 50px;
-		  background: navy;
-		  font-family: Arial, Sans-serif;
-		  color: white;
-		  text-align: right;
-		  padding: 10px 20px;
-		  box-sizing: border-box;
-		}
-		.nav h1 {
-		  margin: 0;
-		}
+    body {
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        background-color: var(--light-grey);
+        color: var(--text-dark);
+    }
 
-		.main {
-		  display: flex;
-		  flex-grow:1;
-		}
-		.main div {
-		  flex-basis: 50%;
-		}
-		.left {
-		  background-color: lightgrey;
-		  
-		  justify-content: center;
-		}
-		.right {
-		  background-color: coral;
-		}
+    .nav {
+        background: var(--dark-blue);
+        color: var(--text-light);
+        padding: 15px 30px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        z-index: 10;
+    }
+    .nav h1 {
+        margin: 0;
+        font-weight: 600;
+        text-align: left;
+    }
 
-		.💪center {
-		  display: flex;
-		  align-items: center;
-		  justify-content: center;
-		  flex-direction: column;
-		}
-		#codeWindow {
-		  font-family: monospace;
-		  resize: none;
-		  outline: none;
-		}
-		#loader {
-			font-weight: bold;
-			flex-grow: 0;
-			flex-basis: 0;
-			}
-		#instructions {
-			flex-basis: 0;
-			flex-grow: 0;
-			margin-bottom: 20px;
-		}
-		#resultsWindow table {
-		  margin-top: 5px;
-		  border: 2px solid #FFFFFF;
-		  width: 100%;
-		  text-align: center;
-		  border-collapse: collapse;
-		  overflow: hidden;
-		}
-		#resultsWindow table td, #resultsWindow table th {
-		  border: 1px solid #FFFFFF;
-		  padding: 3px 4px;
-		}
+    .main {
+        display: flex;
+        flex-grow: 1;
+        gap: 20px;
+        padding: 20px;
+        overflow: hidden; 
+    }
 
-		#resultsWindow table tr:nth-child(even) {
-		  background: #DADADA;
-		}
-		#resultsWindow table thead {
-			border-bottom: 4px solid #333333;
-		}
-		#resultsWindow table thead th {
-		  font-weight: bold;
-		  color: #333333;
-		  text-align: center;
-		}
-		.resultRow {
-			opacity: 0; /* Start rows as invisible */
-			animation: fadeInUp 0.5s ease-out forwards;
-		}
-		
-		@keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+
+    .main > div {
+        flex: 1 1 50%;
+        background-color: var(--text-light);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        min-height: 0;
+        overflow: hidden;
+        display: flex; 
+    }
+    .content-wrapper {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        padding: 25px;
+        scroll-behavior: smooth;
+    }
+	
+    @media (prefers-reduced-motion: reduce) {
+        .content-wrapper {
+            scroll-behavior: auto;
         }
+    }
 
-	  </style>
+    @media (orientation: portrait), (max-width: 800px) {
+        .main {
+            flex-direction: column;
+            overflow: auto;
+        }
+        
+        .main > div {
+            flex-basis: auto;
+            overflow: visible; 
+            flex-shrink: 0;
+        }
+        
+        .content-wrapper {
+            overflow-y: visible; 
+            padding: 25px;
+        }
+    }
+
+    .left .content-wrapper.💪center {
+        justify-content: flex-start;
+    }
+	.right .content-wrapper.💪center {
+        height: auto;
+    }
+
+    .💪center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+    }
+
+    .left.💪center {
+        justify-content: flex-start;
+    }
+
+    #instructions {
+        width: 100%;
+        margin-bottom: 20px;
+        text-align: left;
+        border-left: 4px solid var(--medium-blue);
+        padding-left: 15px;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+    }
+    #instructions ul {
+        padding-left: 20px;
+    }
+
+    #codeWindow {
+        font-family: 'Source Code Pro', monospace;
+        resize: none;
+        outline: none;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        transition: border-color 0.3s, box-shadow 0.3s;
+        flex-grow: 1; 
+    }
+    #codeWindow:focus {
+        border-color: var(--dark-blue);
+        box-shadow: 0 0 5px rgba(44, 62, 80, 0.3);
+    }
+
+    #testsButton {
+        background-color: var(--accent-green);
+        color: var(--text-light);
+        border: none;
+        border-radius: 5px;
+        padding: 12px 25px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s, transform 0.2s;
+        margin: 15px 0;
+        flex-shrink: 0; 
+    }
+    #testsButton:disabled {
+        background-color: #95a5a6;
+        cursor: not-allowed;
+    }
+    #testsButton:not(:disabled):hover {
+        background-color: var(--accent-green-hover);
+        transform: translateY(-2px);
+    }
+
+    #resultsWindow {
+        width: 100%;
+    }
+    #resultsWindow table {
+        margin-top: 10px;
+        border: 1px solid var(--border-color);
+        width: 100%;
+        text-align: left;
+        border-collapse: collapse;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    #resultsWindow table td, #resultsWindow table th {
+        border-top: 1px solid var(--border-color);
+        padding: 10px 12px;
+    }
+    #resultsWindow table thead {
+        background-color: var(--medium-blue);
+        color: var(--text-light);
+    }
+    #resultsWindow table thead th {
+        text-align: left;
+        font-weight: 600;
+    }
+    .resultRow {
+        opacity: 0;
+        animation: fadeInUp 0.5s ease-out forwards;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 
   </head>
   <body>
 	<div class="nav">
-	  <h1>POCC</h1>
-	</div>
-	<div class="main">
-	  <div class="left 💪center">
-		<div id="loader">Loading Python runtime... Please wait.</div>
-		<button id="testsButton" disabled>Run Tests</button>
-		<div id="resultsWindow"></div>
-	  </div>
-	  <div class="right 💪center">
-		<div id="instructions">
-			<ul>
-				<li>Create a variable called greeting with the value Hello</li>
-				<li>Create a function called greet which takes in a name and says "Hello, [name]!" with the name given</li>
-				<li>Create a function called add which takes two numbers and returns the sum</li>
-			</ul>
-		</div>
-		<textarea name="code-window" id="codeWindow" spellcheck="false" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
-	  </div>
+	  <h1>POCC - <em>Variables - Warm Up</em></h1>
 
 	</div>
+	<div class="main">
+		<div class="left">
+			<div class="content-wrapper 💪center"> 
+				<div id="loader">Loading Python runtime... Please wait.</div>
+				<button id="testsButton" disabled>Run Tests</button>
+				<div id="resultsWindow"></div>
+			</div>
+		</div>
+		<div class="right">
+			<div class="content-wrapper 💪center">
+				<div id="instructions">
+					<p>For this excercise you will create some variables and assign them a value. You will need to make sure you add the correct data type for each variable.</p>
+					<ul>
+						<li>Create a variable called username, set it to Ada Lovelace</li>
+						<li>Create a variable called title, set it to World's first Computer Programmer</li>
+						<li>Create a variable called age, set it to 17</li>
+						<li>Create a variable called score, set it to 98.7</li>
+					</ul>
+				</div>
+				<textarea name="code-window" id="codeWindow" spellcheck="false" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
+			</div>
+		</div>
+	</div>
+
   </body>
   <script>
 	const codeInput = document.getElementById('codeWindow');
@@ -165,6 +275,43 @@
 	  return finalString;
 	}
 
+	/**
+	 * Smoothly scrolls a container. If a target element is provided, scrolls to that element.
+	 * Otherwise, scrolls to the bottom of the container.
+	 * @param {HTMLElement} container The container element to scroll.
+	 * @param {HTMLElement|null} targetElement The target element to scroll to.
+	 * @param {number} duration The duration of the scroll in milliseconds.
+	 */
+	function smoothScroll(container, targetElement = null, duration = 500) {
+		const startPosition = container.scrollTop;
+		let endPosition;
+
+		if (targetElement) {
+			// Calculate position to scroll to the element, with a 20px offset from the top
+			endPosition = targetElement.offsetTop - container.offsetTop - 20;
+		} else {
+			// If no target, scroll to the very bottom
+			endPosition = container.scrollHeight - container.clientHeight;
+		}
+
+		const distance = endPosition - startPosition;
+		let startTime = null;
+
+		function animationStep(currentTime) {
+			if (startTime === null) startTime = currentTime;
+			const timeElapsed = currentTime - startTime;
+			const progress = Math.min(timeElapsed / duration, 1);
+			const ease = progress * (2 - progress); // easeOutQuad easing
+
+			container.scrollTop = startPosition + distance * ease;
+
+			if (timeElapsed < duration) {
+				requestAnimationFrame(animationStep);
+			}
+		}
+
+		requestAnimationFrame(animationStep);
+	}
 
 	//js to display results as a table
 	function createTable(jsonString, container) {
@@ -204,6 +351,11 @@
 				cell.textContent = obj[header] !== null ? obj[header] : "";
 				row.appendChild(cell);
 			});
+			if (obj.testResult === 'FAILED') {
+				row.classList.add('test-failed');
+			} else if (obj.testResult === 'SKIPPED') {
+				row.classList.add('test-skipped');
+			}
 			row.style.animationDelay = (obj["testNumber"] / 5) + "s";
 			row.classList.add("resultRow");
 			tbody.appendChild(row);
@@ -214,7 +366,15 @@
 		container.innerHTML = "";
 		container.appendChild(table);
 	}
-	// The new, more comprehensive testCode string
+	const clearCode = `
+import sys
+
+current_module = sys.modules[__name__]
+if hasattr(current_module, '__annotations__'):
+    current_module.__annotations__.clear()
+	`;
+	
+	//testCode string
 	const testCode = `
 import io
 import sys
@@ -419,16 +579,32 @@ try:
     #e_out : expected output from print statements combined into a single string
     #e_return : expected return value from runnign function
 	
-    tester.check_variable_exists("greeting")
-    tester.check_variable_type_hint("greeting", str)
-    tester.check_variable_value("greeting", "Hello", str)
-    tester.check_function_exists("greet")
-    tester.check_function_parameters("greet", 1)
-    tester.full_check("greet", args = ["Bob",], e_out = "Hello, Bob!")
-    tester.check_function_exists("add")
-    tester.check_function_parameters("add", 2)
-    tester.full_check("add", args = [3,4], e_return = 7)
-    tester.full_check("add", args = [-3,-2], e_return = -5)
+	tester.check_variable_exists("username")
+	tester.check_variable_type_hint("username", str)
+	tester.check_variable_value("username", "Ada Lovelace", str)
+	
+	tester.check_variable_exists("title")
+	tester.check_variable_type_hint("title", str)
+	tester.check_variable_value("title", "World's first Computer Programmer", str)
+	
+	tester.check_variable_exists("age")
+	tester.check_variable_type_hint("age", int)
+	tester.check_variable_value("age", 17, int)
+	
+	tester.check_variable_exists("score")
+	tester.check_variable_type_hint("score", float)
+	tester.check_variable_value("score", 98.7, float)
+	
+    #tester.check_variable_exists("greeting")
+    #tester.check_variable_type_hint("greeting", str)
+    #tester.check_variable_value("greeting", "Hello", str)
+    #tester.check_function_exists("greet")
+    #tester.check_function_parameters("greet", 1)
+    #tester.full_check("greet", args = ["Bob",], e_out = "Hello, Bob!")
+    #tester.check_function_exists("add")
+    #tester.check_function_parameters("add", 2)
+    #tester.full_check("add", args = [3,4], e_return = 7)
+    #tester.full_check("add", args = [-3,-2], e_return = -5)
 except Exception as e:
     tester.results.append({
         "testNumber" : -1,
@@ -445,7 +621,6 @@ tester.json_results()
 #for t in list(tester.results):
 #    for k,v in t.items():
 #        print(k, ":", v)
-#     print(k, ":", v)
 	`;
 
 	async function setupPyodide() {
@@ -466,6 +641,9 @@ tester.json_results()
 		let output = '';
 		
 		try {
+			// clear stored test hints
+			pyodide.runPython(clearCode);
+		
 			// Run the user's code to make their function available
 			pyodide.runPython(userCode);
 			console.log("User code completed")
@@ -473,11 +651,39 @@ tester.json_results()
 			output = pyodide.runPython(testCode);
 			console.log(output)
 			createTable(output, resultsWindow);
+			
+			setTimeout(() => {
+				const scrollContainer = document.querySelector('.left .content-wrapper');
+				
+				// Look for the first row with either a 'test-failed' or 'test-skipped' class.
+				const firstProblemRow = scrollContainer.querySelector('.test-failed, .test-skipped');
+
+				if (firstProblemRow) {
+					// If we found a problem, scroll to it.
+					smoothScroll(scrollContainer, firstProblemRow, 1000);
+				} else {
+					// Otherwise, all tests passed, so scroll to the bottom.
+					smoothScroll(scrollContainer, null, 2000);
+				}
+			}, 1000);
 		} catch (error) {
-			// This will catch syntax errors in the user's code
-			console.log(error)
-			output = "Code would not run - please test in an IDE";
-			resultsOutput.textContent = output;
+		
+		    const errorMessage = error.toString();
+        
+			//look for the OSError that the console log revealed.
+			if (errorMessage.includes("OSError: [Errno 29] I/O error")) {
+				// This is the specific error from input(). Show the custom message.
+				resultsOutput.innerHTML = `
+					<p style="color: red; font-weight: bold;">Execution Halted!</p>
+					<p>An <code>input()</code> call was detected in the main part of your script. Please only use <code>input()</code> inside a function definition.</p>
+				`;
+			} else {
+				// It was a different error (e.g., a real SyntaxError)
+				console.log(error); // Log the actual error for debugging
+				output = "Your code would not run. Please check for errors in an IDE.";
+				resultsOutput.textContent = output;
+			}
+
 		} finally {
 			pyodide.pyodide_py._state.restore_state(initialPyodideState);
 		}
