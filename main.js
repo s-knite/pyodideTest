@@ -196,10 +196,6 @@ if hasattr(current_module, '__annotations__'):
 	current_module.__annotations__.clear()
 `;
 
-// Load the initial challenge when the page content is ready
-window.addEventListener('DOMContentLoaded', () => {
-    loadChallenge(currentChallenge);
-});
 
 //testCode string
 const testerCode = `
