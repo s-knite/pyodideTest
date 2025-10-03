@@ -1,12 +1,17 @@
-import { challenge as currentChallenge } from './challenges/variables-warm-up.js';
+import { challenges } from './challenges/index.js';
+let currentChallenge = null; // This will hold the currently loaded challenge object
 
-//setup reference to DOM
+//setup variables for DOM elements
 const codeInput = document.getElementById('codeWindow');
 const runButton = document.getElementById('testsButton');
 const resultsOutput = document.getElementById('resultsWindow');
 const loader = document.getElementById('loader');
 const challengeTitleEl = document.getElementById('challenge-title');
 const instructionsEl = document.getElementById('instructions');
+const challengeMenuEl = document.getElementById('challenge-menu');
+const challengeListEl = document.getElementById('challenge-list');
+const mainCheckerEl = document.querySelector('.main');
+const backToMenuBtn = document.getElementById('back-to-menu-btn');
 let testCode = ''
 
 function loadChallenge(challenge) {
@@ -133,6 +138,58 @@ function createTable(jsonString, container) {
 	container.innerHTML = "";
 	container.appendChild(table);
 }
+
+function showChallengeMenu() {
+    mainCheckerEl.classList.add('hidden');
+    backToMenuBtn.classList.add('hidden');
+    challengeMenuEl.classList.remove('hidden');
+    challengeTitleEl.textContent = 'POCC';
+}
+
+function showCheckerInterface() {
+    challengeMenuEl.classList.add('hidden');
+    mainCheckerEl.classList.remove('hidden');
+    backToMenuBtn.classList.remove('hidden');
+}
+
+function populateChallengeMenu() {
+    challengeListEl.innerHTML = '';
+    for (const challengeMeta of challenges) {
+        const li = document.createElement('li');
+        const button = document.createElement('button');
+        button.innerHTML = `<strong>${challengeMeta.title}</strong><p>${challengeMeta.description}</p>`;
+        button.dataset.challengeId = challengeMeta.id;
+        button.addEventListener('click', handleChallengeSelect);
+        li.appendChild(button);
+        challengeListEl.appendChild(li);
+    }
+}
+
+async function handleChallengeSelect(event) {
+    const challengeId = event.currentTarget.dataset.challengeId;
+    showCheckerInterface();
+    instructionsEl.innerHTML = '<p>Loading challenge...</p>';
+    challengeTitleEl.textContent = 'Loading...';
+
+    try {
+        const module = await import(`./challenges/${challengeId}.js`);
+        currentChallenge = module.challenge;
+        loadChallenge(currentChallenge);
+    } catch (error) {
+        console.error("Failed to load challenge:", error);
+        instructionsEl.innerHTML = '<p style="color: red;">Error: Could not load the selected challenge.</p>';
+    }
+}
+
+function loadChallenge(challenge) {
+    challengeTitleEl.textContent = challenge.title;
+    instructionsEl.innerHTML = challenge.instructionsHTML;
+    codeInput.value = '';
+    resultsOutput.innerHTML = '';
+}
+
+backToMenuBtn.addEventListener('click', showChallengeMenu);
+
 
 //this code clears typehints from previous test runs
 const clearCode = `
@@ -413,3 +470,6 @@ runButton.addEventListener('click', async () => {
 		pyodide.pyodide_py._state.restore_state(initialPyodideState);
 	}
 });
+
+populateChallengeMenu();
+showChallengeMenu();
