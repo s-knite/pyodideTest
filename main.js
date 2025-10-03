@@ -1,4 +1,4 @@
-import { challenges } from './challenges/index.js';
+import { challenges } from './challenges/challengeIndex.js';
 let currentChallenge = null; // This will hold the currently loaded challenge object
 
 //setup variables for DOM elements
