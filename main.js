@@ -12,7 +12,6 @@ const challengeMenuEl = document.getElementById('challenge-menu');
 const challengeListEl = document.getElementById('challenge-list');
 const mainCheckerEl = document.querySelector('.main');
 const backToMenuBtn = document.getElementById('back-to-menu-btn');
-let testCode = ''
 
 
 //allow tab indent in textarea
@@ -427,7 +426,7 @@ runButton.addEventListener('click', async () => {
 		console.log("User code completed")
 		
 		// Assign the captured string to the 'output' variable
-		output = pyodide.runPython(testCode);
+		output = pyodide.runPython(currentChallenge.challengeTests);
 		console.log(output)
 		createTable(output, resultsWindow);
 		
