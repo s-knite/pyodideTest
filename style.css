@@ -275,3 +275,13 @@
     color: #555;
     font-weight: 400;
 }
+
+#challenge-list li.challenge-completed button {
+    border-left: 5px solid var(--accent-green);
+}
+
+#challenge-list li.challenge-completed button strong::after {
+    content: ' ✓'; /* Adds a checkmark for completed challenges */
+    color: var(--accent-green);
+    font-weight: bold;
+}
