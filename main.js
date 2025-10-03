@@ -160,6 +160,14 @@ function populateChallengeMenu() {
     }
 }
 
+function loadChallenge(challenge) {
+    challengeTitleEl.textContent = challenge.title;
+    instructionsEl.innerHTML = challenge.instructionsHTML;
+    codeInput.value = '';
+    resultsOutput.innerHTML = '';
+}
+
+
 async function handleChallengeSelect(event) {
     const challengeId = event.currentTarget.dataset.challengeId;
     showCheckerInterface();
@@ -176,12 +184,6 @@ async function handleChallengeSelect(event) {
     }
 }
 
-function loadChallenge(challenge) {
-    challengeTitleEl.textContent = challenge.title;
-    instructionsEl.innerHTML = challenge.instructionsHTML;
-    codeInput.value = '';
-    resultsOutput.innerHTML = '';
-}
 
 backToMenuBtn.addEventListener('click', showChallengeMenu);
 
