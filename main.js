@@ -133,7 +133,36 @@ function createTable(jsonString, container) {
 	container.appendChild(table);
 }
 
+const PROGRESS_KEY = 'pocc_progress';
+
+/**
+ * Loads the user's progress from localStorage.
+ * @returns {object} An object mapping challenge IDs to their status (e.g., "completed").
+ */
+function loadProgress() {
+    try {
+        const progress = localStorage.getItem(PROGRESS_KEY);
+        return progress ? JSON.parse(progress) : {};
+    } catch (e) {
+        console.error("Failed to load progress:", e);
+        return {};
+    }
+}
+
+/**
+ * Saves the user's progress to localStorage.
+ * @param {object} progress - The progress object to save.
+ */
+function saveProgress(progress) {
+    try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    } catch (e) {
+        console.error("Failed to save progress:", e);
+    }
+}
+
 function showChallengeMenu() {
+	populateChallengeMenu();
     mainCheckerEl.classList.add('hidden');
     backToMenuBtn.classList.add('hidden');
     challengeMenuEl.classList.remove('hidden');
@@ -147,9 +176,16 @@ function showCheckerInterface() {
 }
 
 function populateChallengeMenu() {
+    const progress = loadProgress(); // Load progress before building the menu
     challengeListEl.innerHTML = '';
     for (const challengeMeta of challenges) {
         const li = document.createElement('li');
+        
+        // Check if this challenge is completed
+        if (progress[challengeMeta.id] === 'completed') {
+            li.classList.add('challenge-completed');
+        }
+
         const button = document.createElement('button');
         button.innerHTML = `<strong>${challengeMeta.title}</strong><p>${challengeMeta.description}</p>`;
         button.dataset.challengeId = challengeMeta.id;
@@ -162,8 +198,10 @@ function populateChallengeMenu() {
 function loadChallenge(challenge) {
     challengeTitleEl.textContent = challenge.title;
     instructionsEl.innerHTML = challenge.instructionsHTML;
-    codeInput.value = '';
     resultsOutput.innerHTML = '';
+
+	const savedCode = localStorage.getItem(`pocc_code_${challenge.id}`);
+    codeInput.value = savedCode || ''; // Use saved code or default to empty
 }
 
 
@@ -400,6 +438,12 @@ async function setupPyodide() {
 	return pyodide;
 }
 
+codeInput.addEventListener('input', () => {
+    if (currentChallenge) {
+        localStorage.setItem(`pocc_code_${currentChallenge.id}`, codeInput.value);
+    }
+});
+
 const pyodidePromise = setupPyodide();
 
 runButton.addEventListener('click', async () => {
@@ -422,9 +466,17 @@ runButton.addEventListener('click', async () => {
 		console.log("User code completed")
 		
 		// Assign the captured string to the 'output' variable
-		console.log(currentChallenge.challengeTests);
 		output = pyodide.runPython(currentChallenge.challengeTests);
 		console.log(output)
+
+		const results = JSON.parse(output);
+        const summary = results[0];
+        if (summary.failCount === 0 && summary.skipCount === 0) {
+            const progress = loadProgress();
+            progress[currentChallenge.id] = 'completed';
+            saveProgress(progress);
+        }
+		
 		createTable(output, resultsWindow);
 		
 		setTimeout(() => {
