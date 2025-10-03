@@ -12,7 +12,7 @@ export const challenge = {
         </ul>
     `,
 
-    testCode: `
+    challengeTests: `
 tester = Tester()
 try:
     tester.check_variable_exists("username")
@@ -41,4 +41,5 @@ except Exception as e:
 #final expression returned to JavaScript
 tester.json_results()
 `
+
 };
