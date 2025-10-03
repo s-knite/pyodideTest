@@ -440,10 +440,18 @@ async function setupPyodide() {
 
 codeInput.addEventListener('input', () => {
     if (currentChallenge) {
+        // First, save the user's new code as before.
         localStorage.setItem(`pocc_code_${currentChallenge.id}`, codeInput.value);
+
+        const progress = loadProgress();
+        if (progress[currentChallenge.id] === 'completed') {
+            // Remove the completed status from our progress object.
+            delete progress[currentChallenge.id];
+            // Save the updated progress object back to localStorage.
+            saveProgress(progress);
+        }
     }
 });
-
 const pyodidePromise = setupPyodide();
 
 runButton.addEventListener('click', async () => {
