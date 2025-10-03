@@ -388,9 +388,9 @@ runButton.addEventListener('click', async () => {
 				smoothScroll(scrollContainer, firstProblemRow, 1000);
 			} else {
 				// Otherwise, all tests passed, so scroll to the bottom.
-				smoothScroll(scrollContainer, null, 2000);
+				smoothScroll(scrollContainer, null, 2500);
 			}
-		}, 1000);
+		}, 500);
 	} catch (error) {
 	
 		const errorMessage = error.toString();
