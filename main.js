@@ -426,6 +426,7 @@ runButton.addEventListener('click', async () => {
 		console.log("User code completed")
 		
 		// Assign the captured string to the 'output' variable
+		console.log(currentChallenge.challengeTests);
 		output = pyodide.runPython(currentChallenge.challengeTests);
 		console.log(output)
 		createTable(output, resultsWindow);
