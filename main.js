@@ -14,11 +14,6 @@ const mainCheckerEl = document.querySelector('.main');
 const backToMenuBtn = document.getElementById('back-to-menu-btn');
 let testCode = ''
 
-function loadChallenge(challenge) {
-    challengeTitleEl.textContent = challenge.title;
-    instructionsEl.innerHTML = challenge.instructionsHTML;
-	testCode = challenge.testCode;
-}
 
 //allow tab indent in textarea
 codeInput.addEventListener('keydown', function(e) {
