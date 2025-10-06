@@ -1,7 +1,13 @@
 import { challenges } from './challenges/challengeIndex.js';
-let currentChallenge = null; // This will hold the currently loaded challenge object
 
-//setup variables for DOM elements
+// --- STATE & CONSTANTS ---
+let currentChallenge = null;
+let pyodide = null;
+let initialPyodideState = null;
+let isPyodideInitializing = false;
+const PROGRESS_KEY = 'pocc_progress';
+
+// --- DOM ELEMENT SELECTIONS ---
 const codeInput = document.getElementById('codeWindow');
 const runButton = document.getElementById('testsButton');
 const resultsOutput = document.getElementById('resultsWindow');
@@ -10,223 +16,24 @@ const challengeTitleEl = document.getElementById('challenge-title');
 const instructionsEl = document.getElementById('instructions');
 const challengeMenuEl = document.getElementById('challenge-menu');
 const challengeListEl = document.getElementById('challenge-list');
-const mainCheckerEl = document.querySelector('.main');
+const mainCheckerEl = document.getElementById('main-checker'); // Ensure HTML has this ID
 const backToMenuBtn = document.getElementById('back-to-menu-btn');
+const aboutBtn = document.getElementById('about-btn');
+const clearProgressBtn = document.getElementById('clear-progress-btn');
+const confirmModal = document.getElementById('confirm-modal');
+const cancelClearBtn = document.getElementById('cancel-clear-btn');
+const confirmClearBtn = document.getElementById('confirm-clear-btn');
 
+const allViews = [
+    document.getElementById('challenge-menu'),
+    document.getElementById('code-checker'),
+    document.getElementById('about-page')
+];
 
-//allow tab indent in textarea
-codeInput.addEventListener('keydown', function(e) {
-	if (e.key == 'Tab') {
-		e.preventDefault();
-		var start = this.selectionStart;
-		var end = this.selectionEnd;
-
-		// set textarea value to: text before caret + tab + text after caret
-		this.value = this.value.substring(0, start) +
-		  "    " + this.value.substring(end);
-
-		// put caret at right position again
-		this.selectionStart =
-		  this.selectionEnd = start + 4;
-		}
-	});
-function formatCamelCase(camelCaseString) {
-	// 1. Insert a space before any uppercase letter.
-	// The regular expression finds a lowercase letter followed by an uppercase letter.
-	const spacedString = camelCaseString.replace(/([a-z])([A-Z])/g, '$1 $2');
-
-	// 2. Capitalize the first letter and return the result.
-	const finalString = spacedString.charAt(0).toUpperCase() + spacedString.slice(1);
-
-	return finalString;
-	}
-
-/**
- * Smoothly scrolls a container. If a target element is provided, scrolls to that element.
- * Otherwise, scrolls to the bottom of the container.
- * @param {HTMLElement} container The container element to scroll.
- * @param {HTMLElement|null} targetElement The target element to scroll to.
- * @param {number} duration The duration of the scroll in milliseconds.
- */
-function smoothScroll(container, targetElement = null, duration = 500) {
-	const startPosition = container.scrollTop;
-	let endPosition;
-
-	if (targetElement) {
-		// Calculate position to scroll to the element, with a 20px offset from the top
-		endPosition = targetElement.offsetTop - container.offsetTop - 20;
-	} else {
-		// If no target, scroll to the very bottom
-		endPosition = container.scrollHeight - container.clientHeight;
-	}
-
-	const distance = endPosition - startPosition;
-	let startTime = null;
-
-	function animationStep(currentTime) {
-		if (startTime === null) startTime = currentTime;
-		const timeElapsed = currentTime - startTime;
-		const progress = Math.min(timeElapsed / duration, 1);
-		const ease = progress * (2 - progress); // easeOutQuad easing
-
-		container.scrollTop = startPosition + distance * ease;
-
-		if (timeElapsed < duration) {
-			requestAnimationFrame(animationStep);
-		}
-	}
-
-	requestAnimationFrame(animationStep);
-	}
-
-//js to display results as a table
-function createTable(jsonString, container) {
-	let data;
-	try {
-		data = JSON.parse(jsonString);
-	} catch (error) {
-		container.innerHTML = "<p>Something went wrong parsing JSON string</p>";
-		return;
-	}
-	// Check the data is an array and not empty
-	if (!Array.isArray(data) || data.length === 0) {
-		container.innerHTML = "<p>No data to display.</p>";
-		return;
-	}
-	//create table elements
-	const table = document.createElement('table');
-	const thead = document.createElement('thead');
-	const headerRow = document.createElement('tr');
-	//add table headers
-	const headers = Object.keys(data[1]); //assume 0th index is summary data
-	headers.forEach(hText => {
-		const th = document.createElement('th');
-		th.textContent = formatCamelCase(hText);
-		th.classList.add(hText);
-		headerRow.appendChild(th);
-	});
-	thead.appendChild(headerRow);
-	table.appendChild(thead);
-
-	//fill table with data
-	const tbody = document.createElement('tbody');
-	data.slice(1).forEach(obj => {
-		const row = document.createElement('tr');
-		headers.forEach(header => {
-			const cell = document.createElement('td');
-			cell.textContent = obj[header] !== null ? obj[header] : "";
-			row.appendChild(cell);
-		});
-		if (obj.testResult === 'FAILED') {
-			row.classList.add('test-failed');
-		} else if (obj.testResult === 'SKIPPED') {
-			row.classList.add('test-skipped');
-		}
-		row.style.animationDelay = (obj["testNumber"] / 5) + "s";
-		row.classList.add("resultRow");
-		tbody.appendChild(row);
-	});
-	table.appendChild(tbody);
-
-	//reset container and display
-	container.innerHTML = "";
-	container.appendChild(table);
-}
-
-const PROGRESS_KEY = 'pocc_progress';
-
-/**
- * Loads the user's progress from localStorage.
- * @returns {object} An object mapping challenge IDs to their status (e.g., "completed").
- */
-function loadProgress() {
-    try {
-        const progress = localStorage.getItem(PROGRESS_KEY);
-        return progress ? JSON.parse(progress) : {};
-    } catch (e) {
-        console.error("Failed to load progress:", e);
-        return {};
-    }
-}
-
-/**
- * Saves the user's progress to localStorage.
- * @param {object} progress - The progress object to save.
- */
-function saveProgress(progress) {
-    try {
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
-    } catch (e) {
-        console.error("Failed to save progress:", e);
-    }
-}
-
-function showChallengeMenu() {
-	populateChallengeMenu();
-    mainCheckerEl.classList.add('hidden');
-    backToMenuBtn.classList.add('hidden');
-    challengeMenuEl.classList.remove('hidden');
-    challengeTitleEl.textContent = 'POCC';
-}
-
-function showCheckerInterface() {
-    challengeMenuEl.classList.add('hidden');
-    mainCheckerEl.classList.remove('hidden');
-    backToMenuBtn.classList.remove('hidden');
-}
-
-function populateChallengeMenu() {
-    const progress = loadProgress(); // Load progress before building the menu
-    challengeListEl.innerHTML = '';
-    for (const challengeMeta of challenges) {
-        const li = document.createElement('li');
-        
-        // Check if this challenge is completed
-        if (progress[challengeMeta.id] === 'completed') {
-            li.classList.add('challenge-completed');
-        }
-
-        const button = document.createElement('button');
-        button.innerHTML = `<strong>${challengeMeta.title}</strong><p>${challengeMeta.description}</p>`;
-        button.dataset.challengeId = challengeMeta.id;
-        button.addEventListener('click', handleChallengeSelect);
-        li.appendChild(button);
-        challengeListEl.appendChild(li);
-    }
-}
-
-function loadChallenge(challenge) {
-    challengeTitleEl.textContent = challenge.title;
-    instructionsEl.innerHTML = challenge.instructionsHTML;
-    resultsOutput.innerHTML = '';
-
-	const savedCode = localStorage.getItem(`pocc_code_${challenge.id}`);
-    codeInput.value = savedCode || ''; // Use saved code or default to empty
-}
-
-
-async function handleChallengeSelect(event) {
-    const challengeId = event.currentTarget.dataset.challengeId;
-    showCheckerInterface();
-    instructionsEl.innerHTML = '<p>Loading challenge...</p>';
-    challengeTitleEl.textContent = 'Loading...';
-
-    try {
-        const module = await import(`./challenges/${challengeId}.js`);
-        currentChallenge = module.challenge;
-        loadChallenge(currentChallenge);
-    } catch (error) {
-        console.error("Failed to load challenge:", error);
-        instructionsEl.innerHTML = '<p style="color: red;">Error: Could not load the selected challenge.</p>';
-    }
-}
-
-
-backToMenuBtn.addEventListener('click', showChallengeMenu);
-
+// --- PYTHON CODE STRINGS ---
 
 //this code clears typehints from previous test runs
-const clearCode = `
+const typeHintClearCode = `
 import sys
 
 current_module = sys.modules[__name__]
@@ -431,13 +238,270 @@ class Tester:
 `;
 
 
+
+// --- 4. VIEW & STATE MANAGEMENT ---
+function showView(viewIdToShow) {
+    allViews.forEach(view => {
+        if (view.id === viewIdToShow) {
+            view.classList.remove('hidden');
+        } else {
+            view.classList.add('hidden');
+        }
+    });
+
+    // Show the "Back to Menu" button on any view except the main menu
+    backToMenuBtn.classList.toggle('hidden', viewIdToShow === 'challenge-menu');
+	
+	if (viewIdToShow === 'challenge-menu') {
+		aboutBtn.classList.remove('hidden');
+		challengeTitleEl.textContent = 'POCC';
+	} else {
+		aboutBtn.classList.add('hidden');
+	}
+}
+
+function loadChallenge(challenge) {
+    challengeTitleEl.textContent = challenge.title;
+    instructionsEl.innerHTML = challenge.instructionsHTML;
+    resultsOutput.innerHTML = '';
+
+	const savedCode = localStorage.getItem(`pocc_code_${challenge.id}`);
+    codeInput.value = savedCode || ''; // Use saved code or default to empty
+}
+
+/**
+ * Loads the user's progress from localStorage.
+ * @returns {object} An object mapping challenge IDs to their status (e.g., "completed").
+ */
+function loadProgress() {
+    try {
+        const progress = localStorage.getItem(PROGRESS_KEY);
+        return progress ? JSON.parse(progress) : {};
+    } catch (e) {
+        console.error("Failed to load progress:", e);
+        return {};
+    }
+}
+
+/**
+ * Saves the user's progress to localStorage.
+ * @param {object} progress - The progress object to save.
+ */
+function saveProgress(progress) {
+    try {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    } catch (e) {
+        console.error("Failed to save progress:", e);
+    }
+}
+
+function clearAllProgress() {
+    // Clear the progress tracker
+    localStorage.removeItem(PROGRESS_KEY);
+
+    // Clear all saved code snippets
+    challenges.forEach(challenge => {
+        localStorage.removeItem(`pocc_code_${challenge.id}`);
+    });
+
+    //alert("Your progress has been cleared.");
+    populateChallengeMenu(); // Refresh the menu to remove green ticks
+}
+
+// --- DYNAMIC CONTENT ---
+
+function populateChallengeMenu() {
+    const progress = loadProgress(); // Load progress before building the menu
+    challengeListEl.innerHTML = '';
+    for (const challengeMeta of challenges) {
+        const li = document.createElement('li');
+        
+        // Check if this challenge is completed
+        if (progress[challengeMeta.id] === 'completed') {
+            li.classList.add('challenge-completed');
+        }
+
+        const button = document.createElement('button');
+        button.innerHTML = `<strong>${challengeMeta.title}</strong><p>${challengeMeta.description}</p>`;
+        button.dataset.challengeId = challengeMeta.id;
+        button.addEventListener('click', handleChallengeSelect);
+        li.appendChild(button);
+        challengeListEl.appendChild(li);
+    }
+}
+
+async function handleChallengeSelect(event) {
+    const challengeId = event.currentTarget.dataset.challengeId;
+    showView('code-checker');
+	
+	if (!pyodide && !isPyodideInitializing) {
+        isPyodideInitializing = true;
+        loader.textContent = 'Initializing Python Runtime... Please wait.';
+        loader.classList.remove('hidden'); // Make sure loader is visible
+        
+        try {
+            pyodide = await setupPyodide();
+        } catch (error) {
+            console.error("Pyodide setup failed:", error);
+            loader.textContent = 'Error: Python runtime could not be loaded.';
+            isPyodideInitializing = false;
+            return;
+        }
+    } else if (isPyodideInitializing) {
+        // If setup is already in progress, just show a loading message and wait.
+        instructionsEl.innerHTML = '<p>Waiting for Python runtime...</p>';
+        challengeTitleEl.textContent = 'Loading...';
+        return; // The setup function will handle loading the challenge.
+    }
+	
+    instructionsEl.innerHTML = '<p>Loading challenge...</p>';
+    challengeTitleEl.textContent = 'Loading...';
+
+    try {
+        const module = await import(`./challenges/${challengeId}.js`);
+        currentChallenge = module.challenge;
+        loadChallenge(currentChallenge);
+    } catch (error) {
+        console.error("Failed to load challenge:", error);
+        instructionsEl.innerHTML = '<p style="color: red;">Error: Could not load the selected challenge.</p>';
+    }
+}
+
+//js to display results as a table
+function createTable(jsonString, container) {
+	let data;
+	try {
+		data = JSON.parse(jsonString);
+	} catch (error) {
+		container.innerHTML = "<p>Something went wrong parsing JSON string</p>";
+		return;
+	}
+	// Check the data is an array and not empty
+	if (!Array.isArray(data) || data.length === 0) {
+		container.innerHTML = "<p>No data to display.</p>";
+		return;
+	}
+	//create table elements
+	const table = document.createElement('table');
+	const thead = document.createElement('thead');
+	const headerRow = document.createElement('tr');
+	//add table headers
+	const headers = Object.keys(data[1]); //assume 0th index is summary data
+	headers.forEach(hText => {
+		const th = document.createElement('th');
+		th.textContent = formatCamelCase(hText);
+		th.classList.add(hText);
+		headerRow.appendChild(th);
+	});
+	thead.appendChild(headerRow);
+	table.appendChild(thead);
+
+	//fill table with data
+	const tbody = document.createElement('tbody');
+	const delayDivider = data[0]['testCount'] > 10 ? 5 : 2;
+
+	data.slice(1).forEach(obj => {
+		const row = document.createElement('tr');
+		headers.forEach(header => {
+			const cell = document.createElement('td');
+			cell.textContent = obj[header] !== null ? obj[header] : "";
+			row.appendChild(cell);
+		});
+		if (obj.testResult === 'FAILED') {
+			row.classList.add('test-failed');
+		} else if (obj.testResult === 'SKIPPED') {
+			row.classList.add('test-skipped');
+		}
+		const delay = (((obj["testNumber"] -1) / delayDivider)) + "s"
+		row.style.animationDelay = delay;
+		row.classList.add("resultRow");
+		tbody.appendChild(row);
+	});
+	table.appendChild(tbody);
+
+	//reset container and display
+	container.innerHTML = "";
+	container.appendChild(table);
+	
+	const scrollDelay = data[0]['testCount'] * 100;
+	handleResultsScroll(scrollDelay);
+
+}
+
+function formatCamelCase(camelCaseString) {
+	// 1. Insert a space before any uppercase letter.
+	// The regular expression finds a lowercase letter followed by an uppercase letter.
+	const spacedString = camelCaseString.replace(/([a-z])([A-Z])/g, '$1 $2');
+
+	// 2. Capitalize the first letter and return the result.
+	const finalString = spacedString.charAt(0).toUpperCase() + spacedString.slice(1);
+
+	return finalString;
+	}
+
+/**
+ * After a short delay to allow for rendering, this function finds the appropriate
+ * result row (the first failure or the last success) and smoothly scrolls to it.
+ */
+function handleResultsScroll(timeout) {
+    setTimeout(() => {
+        const scrollContainer = document.querySelector('.left .content-wrapper');
+        if (!scrollContainer) return;
+
+        // Find the first row marked as failed or skipped
+        const firstProblemRow = scrollContainer.querySelector('.test-failed, .test-skipped');
+
+        if (firstProblemRow) {
+            // If a problem row is found, scroll it into the center of the view.
+            firstProblemRow.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center'
+            });
+        } else {
+            // If all tests passed, scroll to the bottom of the table.
+            const lastRow = scrollContainer.querySelector('.resultRow:last-child');
+            if (lastRow) {
+                lastRow.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'end'
+                });
+            }
+        }
+    }, timeout);
+}
+
+// --- PYODIDE SETUP ---
+
 async function setupPyodide() {
-	let pyodide = await loadPyodide();
-	loader.textContent = 'Python runtime loaded! Ready to run code.';
+	pyodide = await loadPyodide({ stderr: () => {} });
+	initialPyodideState = pyodide.pyodide_py._state.save_state();
+	loader.classList.add('hidden');
 	runButton.disabled = false;
+	isPyodideInitializing = false;
 	return pyodide;
 }
 
+// --- EVENT LISTENERS ---
+
+//allow tab indent in textarea
+codeInput.addEventListener('keydown', function(e) {
+	if (e.key == 'Tab') {
+		e.preventDefault();
+		var start = this.selectionStart;
+		var end = this.selectionEnd;
+
+		// set textarea value to: text before caret + tab + text after caret
+		this.value = this.value.substring(0, start) +
+		  "    " + this.value.substring(end);
+
+		// put caret at right position again
+		this.selectionStart =
+		  this.selectionEnd = start + 4;
+		}
+	});
+
+backToMenuBtn.addEventListener('click', () => showView('challenge-menu'));
+aboutBtn.addEventListener('click', () => showView('about-page'));
 codeInput.addEventListener('input', () => {
     if (currentChallenge) {
         // First, save the user's new code as before.
@@ -452,77 +516,123 @@ codeInput.addEventListener('input', () => {
         }
     }
 });
-const pyodidePromise = setupPyodide();
 
-runButton.addEventListener('click', async () => {
-	const pyodide = await pyodidePromise;
-	const userCode = codeInput.value;
-	resultsOutput.textContent = 'Running tests...';
-	
-	//clears variables from previous test runs
-	const initialPyodideState = pyodide.pyodide_py._state.save_state();
-	//clears output
-	let output = '';
-	
-	try {
-		// clear stored test hints
-		pyodide.runPython(clearCode);
-		//Run the testerCode to setup class
-		pyodide.runPython(testerCode);
-		// Run the user's code to make their function available
-		pyodide.runPython(userCode);
-		console.log("User code completed")
-		
-		// Assign the captured string to the 'output' variable
-		output = pyodide.runPython(currentChallenge.challengeTests);
-		console.log(output)
-
-		const results = JSON.parse(output);
-        const summary = results[0];
-        if (summary.failCount === 0 && summary.skipCount === 0) {
-            const progress = loadProgress();
-            progress[currentChallenge.id] = 'completed';
-            saveProgress(progress);
-        }
-		
-		createTable(output, resultsWindow);
-		
-		setTimeout(() => {
-			const scrollContainer = document.querySelector('.left .content-wrapper');
-			
-			// Look for the first row with either a 'test-failed' or 'test-skipped' class.
-			const firstProblemRow = scrollContainer.querySelector('.test-failed, .test-skipped');
-
-			if (firstProblemRow) {
-				// If we found a problem, scroll to it.
-				smoothScroll(scrollContainer, firstProblemRow, 1000);
-			} else {
-				// Otherwise, all tests passed, so scroll to the bottom.
-				smoothScroll(scrollContainer, null, 2500);
-			}
-		}, 500);
-	} catch (error) {
-	
-		const errorMessage = error.toString();
-	
-		//look for the OSError that the console log revealed.
-		if (errorMessage.includes("OSError: [Errno 29] I/O error")) {
-			// This is the specific error from input(). Show the custom message.
-			resultsOutput.innerHTML = `
-				<p style="color: red; font-weight: bold;">Execution Halted!</p>
-				<p>An <code>input()</code> call was detected in the main part of your script. Please only use <code>input()</code> inside a function definition.</p>
-			`;
-		} else {
-			// It was a different error (e.g., a real SyntaxError)
-			console.log(error); // Log the actual error for debugging
-			output = "Your code would not run. Please check for errors in an IDE.";
-			resultsOutput.textContent = output;
-		}
-
-	} finally {
-		pyodide.pyodide_py._state.restore_state(initialPyodideState);
-	}
+// Modal-related event listeners
+clearProgressBtn.addEventListener('click', () => {
+    confirmModal.classList.remove('hidden');
+});
+cancelClearBtn.addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+});
+confirmClearBtn.addEventListener('click', () => {
+    confirmModal.classList.add('hidden');
+    clearAllProgress();
 });
 
+// runButton.addEventListener('click', async () => {
+	// const pyodide = await pyodidePromise;
+	// const userCode = codeInput.value;
+	// resultsOutput.textContent = 'Running tests...';
+	
+	// //clears variables from previous test runs
+	// const initialPyodideState = pyodide.pyodide_py._state.save_state();
+	// //clears output
+	// let output = '';
+	
+	// try {
+		// // clear stored test hints
+		// pyodide.runPython(typeHintClearCode);
+		// //Run the testerCode to setup class
+		// pyodide.runPython(testerCode);
+		// // Run the user's code to make their function available
+		// pyodide.runPython(userCode);
+		// console.log("User code completed")
+		
+		// // Assign the captured string to the 'output' variable
+		// output = pyodide.runPython(currentChallenge.challengeTests);
+		// console.log(output)
+
+		// const results = JSON.parse(output);
+        // const summary = results[0];
+        // if (summary.failCount === 0 && summary.skipCount === 0) {
+            // const progress = loadProgress();
+            // progress[currentChallenge.id] = 'completed';
+            // saveProgress(progress);
+			
+			// populateChallengeMenu();
+        // }
+		
+		// createTable(output, resultsWindow);
+		
+		
+		
+	// } catch (error) {
+	
+		// const errorMessage = error.toString();
+	
+		// //look for the OSError that the console log revealed.
+		// if (errorMessage.includes("OSError: [Errno 29] I/O error")) {
+			// // This is the specific error from input(). Show the custom message.
+			// resultsOutput.innerHTML = `
+				// <p style="color: red; font-weight: bold;">Execution Halted!</p>
+				// <p>An <code>input()</code> call was detected in the main part of your script. Please only use <code>input()</code> inside a function definition.</p>
+			// `;
+		// } else {
+			// // It was a different error (e.g., a real SyntaxError)
+			// console.log(error); // Log the actual error for debugging
+			// output = "Your code would not run. Please check for errors in an IDE.";
+			// resultsOutput.textContent = output;
+		// }
+
+	// } finally {
+		// pyodide.pyodide_py._state.restore_state(initialPyodideState);
+	// }
+// });
+
+runButton.addEventListener('click', async () => {
+    if (!currentChallenge || !pyodide) {
+        resultsOutput.textContent = "Pyodide is not ready or no challenge is loaded.";
+        return;
+    }
+    try {
+        pyodide.pyodide_py._state.restore_state(initialPyodideState);
+
+        const userCode = codeInput.value;
+        const fullPythonScript = `
+${typeHintClearCode}
+${testerCode}
+# --- User's Code ---
+${userCode}
+# --- Challenge Tests ---
+${currentChallenge.challengeTests}
+        `;
+        
+        const output = pyodide.runPython(fullPythonScript);
+        
+        createTable(output, resultsOutput);
+        
+        const results = JSON.parse(output);
+        if (results && results[0]) {
+            const summary = results[0];
+            if (summary.failCount === 0 && summary.skipCount === 0 && summary.testCount > 0) {
+                const progress = loadProgress();
+                progress[currentChallenge.id] = 'completed';
+                saveProgress(progress);
+                populateChallengeMenu();
+            }
+        }
+    } catch (error) {
+        const errorMessage = error.toString();
+        if (errorMessage.includes("OSError")) {
+            resultsOutput.innerHTML = `<p style="color: red; font-weight: bold;">Execution Halted!</p><p>An <code>input()</code> call was detected. Please only use <code>input()</code> inside a function definition.</p>`;
+        } else {
+            console.log(error);
+            resultsOutput.textContent = "Your code would not run. Check the console (F12) for errors.";
+        }
+    }
+});
+
+// --- INITIALIZE THE APP ---
 populateChallengeMenu();
-showChallengeMenu();
+showView('challenge-menu');
+// const pyodidePromise = setupPyodide();
