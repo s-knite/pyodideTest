@@ -331,39 +331,42 @@ function populateChallengeMenu() {
 }
 
 async function handleChallengeSelect(event) {
-    const challengeId = event.currentTarget.dataset.challengeId;
-    showView('code-checker');
-	
-	if (!pyodide && !isPyodideInitializing) {
-        isPyodideInitializing = true;
-        loader.textContent = 'Initializing Python Runtime... Please wait.';
-        loader.classList.remove('hidden'); // Make sure loader is visible
-        
-        try {
-            pyodide = await setupPyodide();
-        } catch (error) {
-            console.error("Pyodide setup failed:", error);
-            loader.textContent = 'Error: Python runtime could not be loaded.';
-            isPyodideInitializing = false;
-            return;
-        }
-    } else if (isPyodideInitializing) {
-        // If setup is already in progress, just show a loading message and wait.
-        instructionsEl.innerHTML = '<p>Waiting for Python runtime...</p>';
-        challengeTitleEl.textContent = 'Loading...';
-        return; // The setup function will handle loading the challenge.
-    }
-	
-    instructionsEl.innerHTML = '<p>Loading challenge...</p>';
-    challengeTitleEl.textContent = 'Loading...';
+    const button = event.currentTarget;
+    const originalButtonText = button.innerHTML;
+    const challengeId = button.dataset.challengeId;
+
+    // 1. Give immediate feedback on the menu
+    button.innerHTML = '<strong>Loading...</strong>';
+    button.disabled = true;
 
     try {
-        const module = await import(`./challenges/${challengeId}.js`);
-        currentChallenge = module.challenge;
+        // 2. Create promises for the two slow tasks
+        const challengePromise = import(`./challenges/${challengeId}.js`);
+        
+        // This promise resolves immediately if Pyodide is ready, or starts setup if it's not.
+        const pyodidePromise = (pyodide || isPyodideInitializing) 
+            ? Promise.resolve(pyodide) 
+            : setupPyodide();
+
+        // 3. Wait for BOTH tasks to complete in parallel
+        const [challengeModule, pyodideInstance] = await Promise.all([challengePromise, pyodidePromise]);
+
+        // 4. Now that everything is loaded, update state
+        currentChallenge = challengeModule.challenge;
+        pyodide = pyodideInstance; // Make sure our global variable is set
+
+        // 5. Switch the view and load the content instantly
+        showView('code-checker');
         loadChallenge(currentChallenge);
+
     } catch (error) {
-        console.error("Failed to load challenge:", error);
-        instructionsEl.innerHTML = '<p style="color: red;">Error: Could not load the selected challenge.</p>';
+        console.error("Failed to load challenge or Pyodide:", error);
+        alert("Sorry, there was an error loading the resources for this challenge.");
+        showView('challenge-menu'); // Go back to the menu on error
+    } finally {
+        // 6. Always restore the button
+        button.innerHTML = originalButtonText;
+        button.disabled = false;
     }
 }
 
@@ -473,13 +476,23 @@ function handleResultsScroll(timeout) {
 // --- PYODIDE SETUP ---
 
 async function setupPyodide() {
-	pyodide = await loadPyodide({ stderr: () => {} });
-	initialPyodideState = pyodide.pyodide_py._state.save_state();
-	loader.classList.add('hidden');
-	runButton.disabled = false;
-	isPyodideInitializing = false;
-	return pyodide;
+    isPyodideInitializing = true;
+    loader.textContent = 'Initializing Python Runtime... Please wait.';
+    loader.classList.remove('hidden'); // Make sure loader is visible
+    
+	challengeMenuEl.classList.add('hidden');
+	
+    const loadedPyodide = await loadPyodide({ stderr: () => {} });
+    
+    initialPyodideState = loadedPyodide.pyodide_py._state.save_state();
+    loader.classList.add('hidden');
+    runButton.disabled = false;
+    isPyodideInitializing = false;
+    
+    return loadedPyodide;
 }
+
+
 
 // --- EVENT LISTENERS ---
 
@@ -528,66 +541,6 @@ confirmClearBtn.addEventListener('click', () => {
     confirmModal.classList.add('hidden');
     clearAllProgress();
 });
-
-// runButton.addEventListener('click', async () => {
-	// const pyodide = await pyodidePromise;
-	// const userCode = codeInput.value;
-	// resultsOutput.textContent = 'Running tests...';
-	
-	// //clears variables from previous test runs
-	// const initialPyodideState = pyodide.pyodide_py._state.save_state();
-	// //clears output
-	// let output = '';
-	
-	// try {
-		// // clear stored test hints
-		// pyodide.runPython(typeHintClearCode);
-		// //Run the testerCode to setup class
-		// pyodide.runPython(testerCode);
-		// // Run the user's code to make their function available
-		// pyodide.runPython(userCode);
-		// console.log("User code completed")
-		
-		// // Assign the captured string to the 'output' variable
-		// output = pyodide.runPython(currentChallenge.challengeTests);
-		// console.log(output)
-
-		// const results = JSON.parse(output);
-        // const summary = results[0];
-        // if (summary.failCount === 0 && summary.skipCount === 0) {
-            // const progress = loadProgress();
-            // progress[currentChallenge.id] = 'completed';
-            // saveProgress(progress);
-			
-			// populateChallengeMenu();
-        // }
-		
-		// createTable(output, resultsWindow);
-		
-		
-		
-	// } catch (error) {
-	
-		// const errorMessage = error.toString();
-	
-		// //look for the OSError that the console log revealed.
-		// if (errorMessage.includes("OSError: [Errno 29] I/O error")) {
-			// // This is the specific error from input(). Show the custom message.
-			// resultsOutput.innerHTML = `
-				// <p style="color: red; font-weight: bold;">Execution Halted!</p>
-				// <p>An <code>input()</code> call was detected in the main part of your script. Please only use <code>input()</code> inside a function definition.</p>
-			// `;
-		// } else {
-			// // It was a different error (e.g., a real SyntaxError)
-			// console.log(error); // Log the actual error for debugging
-			// output = "Your code would not run. Please check for errors in an IDE.";
-			// resultsOutput.textContent = output;
-		// }
-
-	// } finally {
-		// pyodide.pyodide_py._state.restore_state(initialPyodideState);
-	// }
-// });
 
 runButton.addEventListener('click', async () => {
     if (!currentChallenge || !pyodide) {
