@@ -13,7 +13,10 @@
     <div class="nav">
         <h1>
             <span id="challenge-title">POCC</span>
-            <button id="back-to-menu-btn" class="hidden">Back to Menu</button>
+            <div>
+				<button id="about-btn" class="nav-btn">About</button>
+				<button id="back-to-menu-btn" class="nav-btn hidden">Back to Menu</button>
+            </div>
         </h1>
     </div>
 
@@ -22,7 +25,7 @@
         <ul id="challenge-list"></ul>
     </div>
 
-    <div class="main hidden">
+    <div id="code-checker" class="main hidden">
         <div class="left">
             <div class="content-wrapper 💪center"> 
                 <div id="loader">Loading Python runtime... Please wait.</div>
@@ -34,6 +37,27 @@
             <div class="content-wrapper 💪center">
                 <div id="instructions"></div>
                 <textarea name="code-window" id="codeWindow" spellcheck="false" cols="80" rows="20" placeholder="Enter your code here" wrap="off"></textarea>
+            </div>
+        </div>
+    </div>
+
+	<div id="about-page" class="content-page hidden">
+        <h2>About POCC</h2>
+        <p>Welcome to the <b>P</b>ython <b>O</b>nline <b>C</b>ode <b>C</b>hecker (POCC)!</p>
+		<p>This site is designed to be a teaching tool for Computer Science lessons.</p>
+
+        <h3>Clear Your Progress</h3>
+        <p>Your code and challenge progress are saved in your browser's local storage. This data is not sent to any server. If you would like to reset all your progress and clear all saved code, you can do so below.</p>
+        <button id="clear-progress-btn" class="btn-danger">Clear All Local Progress</button>
+    </div>
+    
+    <div id="confirm-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Are you sure?</h3>
+            <p>This will permanently delete all your saved code and challenge progress. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="cancel-clear-btn">Cancel</button>
+                <button id="confirm-clear-btn" class="btn-danger">Yes, Clear Progress</button>
             </div>
         </div>
     </div>
