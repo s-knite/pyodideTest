@@ -178,7 +178,7 @@ class Tester:
 		else:
 			self.include_result(f"Unable to find function {f_name} to check parameters",SKIPPED)
 
-	def full_check(self,f_name,args= [],inputs = [] ,randoms = [],e_out = None,e_return = None):
+	def full_check(self,f_name,args= [],inputs = [] ,randoms = [],e_out = None,e_return = None, quiet = False):
 		if self.confirm_function_parameters(f_name,len(args)):
 			#Build description
 			description = f"Testing function {f_name} "
@@ -213,11 +213,15 @@ class Tester:
 			result = PASSED
 			#check for matching output
 			if e_out != None and e_out != fake_out.getvalue().strip():
-				description += f"Actual output does not match expected output\\nExcpected: {e_out}\\nGot: {actual_output}"
+				description += f"Actual output does not match expected output\\n"
+				if not quiet:
+					description += f"Excpected: {e_out}\\nGot: {actual_output}"
 				result = FAILED
 			#check for matching return
 			if e_return != None and e_return != actual_return:
-				description += f"Return value doesn't match.\\nExpected return: {e_return} Got: {actual_return}"
+				description += f"Return value doesn't match.\\n"
+				if not quiet:
+					description += f"Expected return: {e_return} Got: {actual_return}"
 				result = FAILED
 			if result == PASSED:
 				description += "Test passed."
@@ -513,11 +517,15 @@ codeInput.addEventListener('keydown', function(e) {
 		}
 	});
 
-backToMenuBtn.addEventListener('click', () => showView('challenge-menu'));
+backToMenuBtn.addEventListener('click', () => 
+{
+	showView('challenge-menu');
+	populateChallengeMenu(); 
+});
 aboutBtn.addEventListener('click', () => showView('about-page'));
 codeInput.addEventListener('input', () => {
     if (currentChallenge) {
-        // First, save the user's new code as before.
+        // Save the user's code as they type.
         localStorage.setItem(`pocc_code_${currentChallenge.id}`, codeInput.value);
 
         const progress = loadProgress();
@@ -526,9 +534,13 @@ codeInput.addEventListener('input', () => {
             delete progress[currentChallenge.id];
             // Save the updated progress object back to localStorage.
             saveProgress(progress);
+			
+			populateChallengeMenu();
         }
     }
 });
+
+
 
 // Modal-related event listeners
 clearProgressBtn.addEventListener('click', () => {
