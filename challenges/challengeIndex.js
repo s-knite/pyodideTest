@@ -2,6 +2,11 @@
 
 export const challenges = [
     {
+        id: 'demo', 
+        title: 'Demo',
+        description: 'This challenge is used to demonstrate the platform.\nThis can be skipped.'
+    },
+    {
         id: 't2c-01-04', 
         title: 'Time2Code 01-04',
         description: 'Dice Face 5 ⭐'
