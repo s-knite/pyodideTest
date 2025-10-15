@@ -9,7 +9,7 @@ export const challenge = {
 			<li>Create a variable called age with the value 17</li>
 			<li>Create a variable called programmer with the value True</li>
 			<li>Create a variable called score with the value 98.7</li>
-			<li>Create a function valled greeting that takes a name as a parameter and outputs "Hello, [name]!"</li>
+			<li>Create a function called greeting that takes a name as a parameter and outputs "Hello, [name]!"</li>
 			<li>Create a function called calculation which takes in 3 parameters, add the first two numbers, multiply the result by the 3rd number and return the calculated value</li>
 			
 		</ul>
@@ -55,5 +55,6 @@ except Exception as e:
 #final expression returned to JavaScript
 tester.json_results()
 `
+
 
 };
