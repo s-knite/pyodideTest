@@ -3,11 +3,11 @@ export const challenge = {
     title: 'POCC - 🕓2👩‍💻 - Dice Face 5',
     
     instructionsHTML: `
-        <p>These tests are for the Time 2 Code challenge 01-04 Dive Face 5</p>
+        <p>These tests are for the Time 2 Code challenge 01-04 Dice Face 5</p>
 		<p><a href="https://time2code.today/python-course/python-level-1/python-dice-face-5" target="_blank">Click here to see challenge details</a></p>
         <ul>
             <li>Ensure your code is written in a function called output5</li>
-			<li>Make sure you have fully tested your output at that it matches exactly</li>
+			<li>Make sure you have fully tested your output and that it matches exactly</li>
         </ul>
     `,
 
@@ -30,5 +30,6 @@ except Exception as e:
 #final expression returned to JavaScript
 tester.json_results()
 `
+
 
 };
