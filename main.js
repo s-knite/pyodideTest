@@ -1,11 +1,24 @@
-import { challenges } from './challenges/challengeIndex.js';
+// --- using URL parameters to select challenges ---
+function getChallengeSet() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const set = urlParams.get('set');
+    // Basic sanitizer to prevent "directory-traversal-like" shenanigans
+    if (set && /^[a-zA-Z0-9_]+$/.test(set)) {
+        return set;
+    }
+    return 'default'; // The fallback set
+}
+
+const challengeSet = getChallengeSet();
+const challengeBasePath = `./challenges/${challengeSet}`;
 
 // --- STATE & CONSTANTS ---
+let challenges = [];
 let currentChallenge = null;
 let pyodide = null;
 let initialPyodideState = null;
 let isPyodideInitializing = false;
-const PROGRESS_KEY = 'pocc_progress';
+let PROGRESS_KEY = 'pocc_progress';
 
 // --- DOM ELEMENT SELECTIONS ---
 const codeInput = document.getElementById('codeWindow');
@@ -345,7 +358,7 @@ async function handleChallengeSelect(event) {
 
     try {
         // 2. Create promises for the two slow tasks
-        const challengePromise = import(`./challenges/${challengeId}.js`);
+        const challengePromise = import(`${challengeBasePath}/${challengeId}.js`);
         
         // This promise resolves immediately if Pyodide is ready, or starts setup if it's not.
         const pyodidePromise = (pyodide || isPyodideInitializing) 
@@ -509,7 +522,7 @@ codeInput.addEventListener('keydown', function(e) {
 
 		// set textarea value to: text before caret + tab + text after caret
 		this.value = this.value.substring(0, start) +
-		  "    " + this.value.substring(end);
+  			"    " + this.value.substring(end);
 
 		// put caret at right position again
 		this.selectionStart =
@@ -598,6 +611,23 @@ ${currentChallenge.challengeTests}
 });
 
 // --- INITIALIZE THE APP ---
-populateChallengeMenu();
-showView('challenge-menu');
-// const pyodidePromise = setupPyodide();
+async function initializeApp() {
+    try {
+        // 1. Dynamically import the correct challenge index
+        const indexModule = await import(`${challengeBasePath}/index.js`);
+        challenges = indexModule.challenges; // Populate our global array
+
+        // 2. Set a unique progress key for this set
+        PROGRESS_KEY = `pocc_progress_${challengeSet}`;
+
+        // 3. Now we can safely populate the menu
+        populateChallengeMenu();
+        showView('challenge-menu');
+    } catch (err) {
+        console.error(`Failed to load challenge set '${challengeSet}':`, err);
+        // Show an error to the user
+        document.body.innerHTML = `<h1>Error</h1><p>Could not load challenge set: <b>${challengeSet}</b></p><p>Please check the URL and try again.</p>`;
+    }
+}
+
+initializeApp();
