@@ -282,7 +282,7 @@ function loadChallenge(challenge) {
     instructionsEl.innerHTML = challenge.instructionsHTML;
     resultsOutput.innerHTML = '';
 
-	const savedCode = localStorage.getItem(`pocc_code_${challenge.id}`);
+	const savedCode = localStorage.getItem(`pocc_code_${challengeSet}_${challenge.id}`);
     codeInput.value = savedCode || ''; // Use saved code or default to empty
 }
 
@@ -318,7 +318,7 @@ function clearAllProgress() {
 
     // Clear all saved code snippets
     challenges.forEach(challenge => {
-        localStorage.removeItem(`pocc_code_${challenge.id}`);
+        localStorage.removeItem(`pocc_code_${challengeSet}_${challenge.id}`);
     });
 
     //alert("Your progress has been cleared.");
@@ -539,7 +539,7 @@ aboutBtn.addEventListener('click', () => showView('about-page'));
 codeInput.addEventListener('input', () => {
     if (currentChallenge) {
         // Save the user's code as they type.
-        localStorage.setItem(`pocc_code_${currentChallenge.id}`, codeInput.value);
+        localStorage.setItem(`pocc_code_${challengeSet}_${currentChallenge.id}`, codeInput.value);
 
         const progress = loadProgress();
         if (progress[currentChallenge.id] === 'completed') {
