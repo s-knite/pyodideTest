@@ -23,12 +23,6 @@ try:
 	tester.full_check("water_state", args=[0], e_return="solid", quiet = True)
 	tester.full_check("water_state", args=[100], e_return="gaseous", quiet = True)
 
-
-	
-
-	
-    
-    
 except Exception as e:
     tester.results.append({
         "testNumber" : -1,
