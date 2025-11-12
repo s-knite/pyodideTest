@@ -11,4 +11,9 @@ export const challenges = [
         title: 'Time2Code 02-05',
         description: 'HTTP Status Codes ⭐'
     },
+    {
+        id: 't2c-02-06', 
+        title: 'Time2Code 02-06',
+        description: 'Currency Converter ⭐⭐'
+    },
 ];
