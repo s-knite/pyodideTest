@@ -26,4 +26,9 @@ export const challenges = [
         title: 'Time2Code 02-08',
         description: 'Exam Grade ⭐⭐⭐'
     },
+        {
+        id: 't2c-02-09', 
+        title: 'Time2Code 02-09',
+        description: 'Periodic Table ⭐⭐⭐'
+    },
 ];
