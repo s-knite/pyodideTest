@@ -15,13 +15,13 @@ try:
 	tester.check_function_exists("water_state")
 	tester.check_function_parameters("water_state", 1)
 	tester.full_check("water_state", args=[20], e_return="liquid", quiet = False)
-  tester.full_check("water_state", args=[-8], e_return="solid", quiet = False)
-  tester.full_check("water_state", args=[106.89], e_return="gaseous", quiet = False)
-  tester.full_check("water_state", args=[-12.5], e_return="solid", quiet = True)
-  tester.full_check("water_state", args=[7], e_return="liquid", quiet = True)
-  tester.full_check("water_state", args=[160.459], e_return="gaseous", quiet = True)
-  tester.full_check("water_state", args=[0], e_return="solid", quiet = True)
-  tester.full_check("water_state", args=[100], e_return="gaseous", quiet = True)
+	tester.full_check("water_state", args=[-8], e_return="solid", quiet = False)
+	tester.full_check("water_state", args=[106.89], e_return="gaseous", quiet = False)
+	tester.full_check("water_state", args=[-12.5], e_return="solid", quiet = True)
+	tester.full_check("water_state", args=[7], e_return="liquid", quiet = True)
+	tester.full_check("water_state", args=[160.459], e_return="gaseous", quiet = True)
+	tester.full_check("water_state", args=[0], e_return="solid", quiet = True)
+	tester.full_check("water_state", args=[100], e_return="gaseous", quiet = True)
 
 
 	
