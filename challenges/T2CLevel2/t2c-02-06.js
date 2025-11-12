@@ -1,6 +1,6 @@
 
 export const challenge = {
-    id: 't2c-02-05',
+    id: 't2c-02-06',
     title: 'POCC - 💷💵💴 Currency Converter',
     
     instructionsHTML: `
