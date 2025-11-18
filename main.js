@@ -245,13 +245,21 @@ class Tester:
 		self.include_result(description,result)
 
 	def json_results(self):
-		summary = {
-			"testCount" : self.count_tests,
-			"passCount" : self.count_pass,
-			"failCount" : self.count_fail,
-			"skipCount" : self.count_tests - self.count_pass - self.count_fail,
+			# Recalculate counts from the actual results list to ensure consistency
+			# This fixes the bug where exception errors weren't being counted
+			actual_pass = sum(1 for r in self.results if r.get("testResult") == "PASSED")
+			actual_fail = sum(1 for r in self.results if r.get("testResult") == "FAILED")
+			# Anything not passed or failed is considered skipped
+			total_tests = len(self.results)
+			actual_skip = total_tests - actual_pass - actual_fail
+	
+			summary = {
+				"testCount" : total_tests,
+				"passCount" : actual_pass,
+				"failCount" : actual_fail,
+				"skipCount" : actual_skip,
 			}
-		return json.dumps([summary] + self.results)
+			return json.dumps([summary] + self.results)
 `;
 
 
