@@ -13,12 +13,12 @@ tester = Tester()
 try:
 	tester.check_function_exists("get_pin")
 	tester.check_function_parameters("get_pin", 0)
-	tester.full_check("dispense", inputs=["2311","2213","7895"], e_return = False, quiet = False)
-	tester.full_check("dispense", inputs=["6753","9622","7528"], e_return = True, quiet = False)
-	tester.full_check("dispense", inputs=["7528"], e_return = True, quiet = False)
-	tester.full_check("dispense", inputs=["1111","2222","3333"], e_return = False, quiet = True)
-	tester.full_check("dispense", inputs=["7528"], e_return = True, quiet = True)
-	tester.full_check("dispense", inputs=["7582","7285","7528"], e_return = True, quiet = True)
+	tester.full_check("get_pin", inputs=["2311","2213","7895"], e_return = False, quiet = False)
+	tester.full_check("get_pin", inputs=["6753","9622","7528"], e_return = True, quiet = False)
+	tester.full_check("get_pin", inputs=["7528"], e_return = True, quiet = False)
+	tester.full_check("get_pin", inputs=["1111","2222","3333"], e_return = False, quiet = True)
+	tester.full_check("get_pin", inputs=["7528"], e_return = True, quiet = True)
+	tester.full_check("get_pin", inputs=["7582","7285","7528"], e_return = True, quiet = True)
 
 
 
