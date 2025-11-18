@@ -18,7 +18,7 @@ try:
 	tester.full_check("dispense", args=["0"], e_out="W0", quiet = False)
 	tester.full_check("dispense", args=["90"], e_out="W90\\nD20\\nD20\\nD20\\nD20\\nD10", quiet = False)
 	tester.full_check("dispense", args=["200"], e_out="W200\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20", quiet = True)
-	tester.full_check("dispense", args=["315"], e_out=""W315\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD10\\nD5"", quiet = True)
+	tester.full_check("dispense", args=["315"], e_out="W315\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD20\\nD10\\nD5", quiet = True)
 
 
 
