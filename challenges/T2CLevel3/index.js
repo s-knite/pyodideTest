@@ -21,14 +21,14 @@ export const challenges = [
         title: 'Time2Code 03-07',
         description: 'Square root ⭐⭐'
     },
-// 	{
-//         id: 't2c-03-08', 
-//         title: 'Time2Code 03-08',
-//         description: 'Circle Properties ⭐⭐⭐'
-//     },
-// 	{
-//         id: 't2c-03-09', 
-//         title: 'Time2Code 03-09',
-//         description: 'Energy Bill Calculator ⭐⭐⭐'
-//     },
+	{
+        id: 't2c-03-08', 
+        title: 'Time2Code 03-08',
+        description: 'PIN ⭐⭐⭐'
+    },
+	{
+        id: 't2c-03-09', 
+        title: 'Time2Code 03-09',
+        description: 'Measurements ⭐⭐⭐'
+    },
 ];
