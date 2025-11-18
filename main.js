@@ -428,7 +428,7 @@ function createTable(jsonString, container) {
 	const tbody = document.createElement('tbody');
 	const delayDivider = data[0]['testCount'] > 10 ? 5 : 2;
 
-	data.slice(1).forEach(obj => {
+	data.slice(1).forEach((obj,index) => {
 		const row = document.createElement('tr');
 		headers.forEach(header => {
 			const cell = document.createElement('td');
@@ -440,7 +440,7 @@ function createTable(jsonString, container) {
 		} else if (obj.testResult === 'SKIPPED') {
 			row.classList.add('test-skipped');
 		}
-		const delay = (((obj["testNumber"] -1) / delayDivider)) + "s"
+		const delay = (index / delayDivider) + "s";
 		row.style.animationDelay = delay;
 		row.classList.add("resultRow");
 		tbody.appendChild(row);
