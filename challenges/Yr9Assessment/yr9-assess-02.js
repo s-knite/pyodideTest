@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-shout-machine',
+    id: 'yr9-assess-02',
     title: 'Strings: The Shouter 📢',
     description: 'Transform user input using string methods.',
     instructionsHTML: `
