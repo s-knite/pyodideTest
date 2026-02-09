@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-list-search',
+    id: 'yr9-assess-08',
     title: 'Lists: Stock Checker 🔍',
     instructionsHTML: `
     <p>Create a function <code>is_item_in_stock(search_term: str)</code>:</p>
