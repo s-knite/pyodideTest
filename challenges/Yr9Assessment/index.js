@@ -41,4 +41,9 @@ export const challenges = [
         title: '08 ⭐⭐⭐',
         description: 'Lists'
     },
+    {
+        id: 'yr9-assess-09', 
+        title: 'Extension ⭐⭐⭐⭐⭐',
+        description: 'Multiple functions'
+    },
 ];
