@@ -20,6 +20,8 @@ export const challenge = {
       </li>
       <li><code>main()</code>: The controller function to ask for inputs and call the helpers.</li>
     </ul>
+    <p>Hint: letters in strings can be accessed using square brackets just like lists.
+</p>
     `,
     challengeTests: `
 tester = Tester()
