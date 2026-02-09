@@ -3,8 +3,8 @@ export const challenge = {
     title: 'Variables ⭐',
     
     instructionsHTML: `
-    <p>These tests are part of the year 9 Python assessment/p>
-		<p>Complete all the tasks listed below using Thonny and then paste your code here to test</p>
+    <p>These tests are part of the year 9 Python assessment</p>
+	<p>Complete all the tasks listed below using Thonny and then paste your code here to test</p>
     <ul>
       <li>Create a variable called player with the value of Ada Lovelace</li>
       <li>Create a variable called password with the value of qwerty1!</li>
