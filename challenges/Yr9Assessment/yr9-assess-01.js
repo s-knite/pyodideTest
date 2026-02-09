@@ -24,7 +24,7 @@ try:
 	tester.check_variable_value("password", "qwerty1!", str)
 	tester.check_variable_exists("score")
 	tester.check_variable_type_hint("score", float)
-	tester.check_variable_value("score", "3.7", float)
+	tester.check_variable_value("score", 3.7, float)
 	tester.check_variable_exists("lives_left")
 	tester.check_variable_type_hint("lives_left", int)
 	tester.check_variable_value("lives_left", 3, int)
