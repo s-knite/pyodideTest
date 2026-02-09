@@ -7,9 +7,9 @@ export const challenge = {
 		<p>Complete all the tasks listed below using Thonny and then paste your code here to test</p>
     <ul>
       <li>Create a variable called player with the value of Ada Lovelace</li>
-      <li>Create a variable called password with the value of qwerty1!/li>
+      <li>Create a variable called password with the value of qwerty1!</li>
       <li>Create a variable called score with the value of 3.7</li>
-      <li>Create a variable called lives_left with the value of 3/li>
+      <li>Create a variable called lives_left with the value of 3</li>
     </ul>
     `,
 
