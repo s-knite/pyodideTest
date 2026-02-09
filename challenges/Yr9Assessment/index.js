@@ -1,4 +1,4 @@
-// challenges/challengeIndex.js
+// challenges/index.js
 
 export const challenges = [
     {
