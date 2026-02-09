@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-math-logic',
+    id: 'yr9-assess-07',
     title: 'Logic: Bulk Discount 🛒',
     instructionsHTML: `
     <p>Create a function <code>get_total(price: float, quantity: int)</code>:</p>
