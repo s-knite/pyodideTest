@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-str-gen',
+    id: 'yr9-assess-05',
     title: 'Strings: Username Creator 👤',
     description: 'Combine strings and integers into a single format.',
     instructionsHTML: `
