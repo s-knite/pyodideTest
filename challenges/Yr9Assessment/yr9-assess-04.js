@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-ticket-logic',
+    id: 'yr9-assess-04',
     title: 'Conditionals: Cinema Tickets 🎟️',
     description: 'Use if-else statements to determine ticket prices.',
     instructionsHTML: `
