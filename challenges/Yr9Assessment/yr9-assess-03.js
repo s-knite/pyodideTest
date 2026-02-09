@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-math-01',
+    id: 'yr9-assess-03',
     title: 'Input/Output: Double-Up 🔢',
     description: 'Convert user input into numbers for calculation.',
     instructionsHTML: `
