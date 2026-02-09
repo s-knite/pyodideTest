@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-list-math',
+    id: 'yr9-assess-02',
     title: 'Lists: Average Finder 📊',
     description: 'Calculate the average value from a list of numbers.',
     instructionsHTML: `
