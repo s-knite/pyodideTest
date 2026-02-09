@@ -10,6 +10,7 @@ export const challenge = {
       <li>Add <b>!!!</b> to the very end of the message.</li>
       <li><i>Example: "hello" becomes "HELLO!!!"</i></li>
     </ul>
+    <p>Hint you can use the upper function, for example test.upper()</p>
     `,
     challengeTests: `
 tester = Tester()
