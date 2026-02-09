@@ -1,5 +1,5 @@
 export const challenge = {
-    id: 'yr9-adv-sanitizer',
+    id: 'yr9-assess-09',
     title: 'Outstanding: The Data Sanitizer 🛡️',
     description: 'Manual string validation and boolean flags across three functions.',
     instructionsHTML: `
