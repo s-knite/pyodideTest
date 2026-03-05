@@ -112,7 +112,7 @@ try:
         except StopIteration:
             tester.include_result("play_game crashed: Asked for input too many times.", FAILED)
         except Exception as e:
-
+            tester.include_result(f"play_game Player win test crashed: {e}", FAILED)
 except Exception as e:
     tester.results.append({
         "testNumber" : -1,
