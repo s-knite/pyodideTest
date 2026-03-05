@@ -4,6 +4,7 @@ export const challenge = {
     
     instructionsHTML: `
         <p>These tests check that your time conversion subprograms and main program work correctly.</p>
+        <p>For these tests you will need to write a function called main that runs the code for your main program as in the instructions</p>
         <p>This code will check <code>seconds_to_hours</code>, <code>seconds_to_minutes</code>, <code>seconds_remaining</code>, and <code>main</code>.</p>
     `,
 
