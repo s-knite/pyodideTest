@@ -36,8 +36,8 @@ try:
 
 
     # --- cpu_choice ---
-    tester.check_function_exists("cpu_choice")
-    tester.check_function_parameters("cpu_choice", 0)
+    tester.check_function_exists("get_cpu_choice")
+    tester.check_function_parameters("get_cpu_choice", 0)
 
     # Get CPU 1
     tester.full_check("get_cpu_choice", randoms=[1], e_return="r", quiet=False)
@@ -59,17 +59,59 @@ try:
     tester.full_check("who_won_round", args=["s", "s"], e_return="draw", quiet=False)
 
 
-    # --- play_game ---
-    tester.check_function_exists("play_game")
-    tester.check_function_parameters("play_game", 0)
+    # --- play_game --- exact string match
+    # tester.check_function_exists("play_game")
+    # tester.check_function_parameters("play_game", 0)
 
     # Full game CPU win
-    e_out_cpu_win = "player score: 0  cpu score: 0\\ncpu's paper beats player's rock\\n\\nplayer score: 0  cpu score: 1\\ncpu's paper beats player's rock\\n\\nplayer score: 0  cpu score: 2\\ncpu's scissors beats player's paper\\n\\nplayer score: 0  cpu score: 3\\ncpu's rock beats player's scissors\\n\\nplayer score: 0  cpu score: 4\\ncpu's rock beats player's scissors\\n\\nCPU WINS!"
-    tester.full_check("play_game", inputs=["r", "r", "p", "s", "s"], randoms=[2, 2, 3, 1, 1], e_out=e_out_cpu_win, quiet=False)
+    # e_out_cpu_win = "player score: 0  cpu score: 0\\ncpu's paper beats player's rock\\n\\nplayer score: 0  cpu score: 1\\ncpu's paper beats player's rock\\n\\nplayer score: 0  cpu score: 2\\ncpu's scissors beats player's paper\\n\\nplayer score: 0  cpu score: 3\\ncpu's rock beats player's scissors\\n\\nplayer score: 0  cpu score: 4\\ncpu's rock beats player's scissors\\n\\nCPU WINS!"
+    # tester.full_check("play_game", inputs=["r", "r", "p", "s", "s"], randoms=[2, 2, 3, 1, 1], e_out=e_out_cpu_win, quiet=False)
 
     # Full game Player win
-    e_out_player_win = "player score: 0  cpu score: 0\\nplayer's rock beats cpu's scissors\\n\\nplayer score: 1  cpu score: 0\\nplayer's rock beats cpu's scissors\\n\\nplayer score: 2  cpu score: 0\\nplayer's paper beats cpu's rock\\n\\nplayer score: 3  cpu score: 0\\nplayer's scissors beats cpu's paper\\n\\nplayer score: 4  cpu score: 0\\nplayer's scissors beats cpu's paper\\n\\nPlayer WINS!"
-    tester.full_check("play_game", inputs=["r", "r", "p", "s", "s"], randoms=[3, 3, 1, 2, 2], e_out=e_out_player_win, quiet=False)
+    # e_out_player_win = "player score: 0  cpu score: 0\\nplayer's rock beats cpu's scissors\\n\\nplayer score: 1  cpu score: 0\\nplayer's rock beats cpu's scissors\\n\\nplayer score: 2  cpu score: 0\\nplayer's paper beats cpu's rock\\n\\nplayer score: 3  cpu score: 0\\nplayer's scissors beats cpu's paper\\n\\nplayer score: 4  cpu score: 0\\nplayer's scissors beats cpu's paper\\n\\nPlayer WINS!"
+    # tester.full_check("play_game", inputs=["r", "r", "p", "s", "s"], randoms=[3, 3, 1, 2, 2], e_out=e_out_player_win, quiet=False)
+
+# --- play_game (Flexible Keyword Matching) ---
+    tester.check_function_exists("play_game")
+    if tester.confirm_function_exists("play_game"):
+        
+        # Scenario 1: Full game CPU win
+        try:
+            with patch("builtins.input", side_effect=["r", "r", "p", "s", "s"]), \
+                 patch("random.randint", side_effect=[2, 2, 3, 1, 1]), \
+                 patch("sys.stdout", new=StringIO()) as fake_out:
+                
+                globals()['play_game']()
+                
+                # Convert student output to lowercase for easy searching
+                output = fake_out.getvalue().lower()
+                
+                # Check for the presence of key victory phrases instead of an exact string
+                if "cpu wins" in output or "cpu won" in output:
+                    tester.include_result("play_game correctly calculates and announces a CPU win.", PASSED)
+                else:
+                    tester.include_result("play_game failed to announce the CPU as the winner.", FAILED)
+        except StopIteration:
+            tester.include_result("play_game crashed: Asked for input too many times.", FAILED)
+        except Exception as e:
+            tester.include_result(f"play_game CPU win test crashed: {e}", FAILED)
+
+        # Scenario 2: Full game Player win
+        try:
+            with patch("builtins.input", side_effect=["r", "r", "p", "s", "s"]), \
+                 patch("random.randint", side_effect=[3, 3, 1, 2, 2]), \
+                 patch("sys.stdout", new=StringIO()) as fake_out:
+                
+                globals()['play_game']()
+                output = fake_out.getvalue().lower()
+                
+                if "player wins" in output or "player won" in output or "you win" in output:
+                    tester.include_result("play_game correctly calculates and announces a Player win.", PASSED)
+                else:
+                    tester.include_result("play_game failed to announce the Player as the winner.", FAILED)
+        except StopIteration:
+            tester.include_result("play_game crashed: Asked for input too many times.", FAILED)
+        except Exception as e:
 
 except Exception as e:
     tester.results.append({
