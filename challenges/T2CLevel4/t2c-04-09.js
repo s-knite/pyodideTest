@@ -4,6 +4,7 @@ export const challenge = {
     
     instructionsHTML: `
         <p>These tests check all your subprograms for the Rock, Paper, Scissors game.</p>
+        <p><strong>!!Note there is a typo on the Time2Code page - please make sure your function is called get_cpu_choice not cpu_choice!!</strong></p>
         <p>This code will test <code>convert</code>, <code>get_player_choice</code>, <code>cpu_choice</code>, <code>who_won_round</code>, and <code>play_game</code>.</p>
     `,
 
@@ -39,11 +40,11 @@ try:
     tester.check_function_parameters("cpu_choice", 0)
 
     # Get CPU 1
-    tester.full_check("cpu_choice", randoms=[1], e_return="r", quiet=False)
+    tester.full_check("get_cpu_choice", randoms=[1], e_return="r", quiet=False)
     # Get CPU 2
-    tester.full_check("cpu_choice", randoms=[2], e_return="p", quiet=False)
+    tester.full_check("get_cpu_choice", randoms=[2], e_return="p", quiet=False)
     # Get CPU 3
-    tester.full_check("cpu_choice", randoms=[3], e_return="s", quiet=False)
+    tester.full_check("get_cpu_choice", randoms=[3], e_return="s", quiet=False)
 
 
     # --- who_won_round ---
