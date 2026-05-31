@@ -1,6 +1,6 @@
 export const challenge = {
     id: 't2c-07-06',
-    title: 'POCC - Grid Move Converter 🗺️♟️',
+    title: 'POCC - Your move ♟️♟️♟️',
     
     instructionsHTML: `
         <p>This test checks your <code>get_move</code> and <code>get_indexes</code> subprograms.</p>
