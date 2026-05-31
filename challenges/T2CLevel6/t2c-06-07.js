@@ -1,6 +1,6 @@
 export const challenge = {
     id: 't2c-06-07',
-    title: 'Find and Replace 🔄🖨️',
+    title: 'Find and Replace 🔎🔄🖨️',
     
     instructionsHTML: `
         <p>This challenge requires you to write two subprograms to work with lists:</p>
