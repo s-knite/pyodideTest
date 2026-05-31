@@ -63,7 +63,7 @@ try:
                         bar_length = int((cnt / rolls) * max_bar_width) if rolls > 0 else 0
                         bar = "█" * max(bar_length, 1) if cnt > 0 else ""
                         
-                        chart_lines.append(f"  {lbl}: {cnt:<4} ({percentage:>4.1f}%) {bar}")
+                        chart_lines.append(f"  {lbl:>2}: {cnt:>4} ({percentage:>5.1f}%) {bar}")
                     
                     ascii_chart = "\\n".join(chart_lines)
                     
