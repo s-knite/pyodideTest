@@ -19,11 +19,11 @@ try:
         
         # Pre-processed clean target string
         correct_lyrics = (
-            "On the first of Christmas\\nMy true love gave to me\\nA partridge in a pear tree.\\n\\n"
-            "On the second of Christmas\\nMy true love gave to me\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
-            "On the third of Christmas\\nMy true love gave to me\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
-            "On the fourth of Christmas\\nMy true love gave to me\\nFour calling birds\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
-            "On the fifth of Christmas\\nMy true love gave to me\\nFive gold rings\\nFour calling birds\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree."
+            "On the first day of Christmas\\nMy true love gave to me\\nA partridge in a pear tree.\\n\\n"
+            "On the second day of Christmas\\nMy true love gave to me\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
+            "On the third day of Christmas\\nMy true love gave to me\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
+            "On the fourth day of Christmas\\nMy true love gave to me\\nFour calling birds\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree.\\n\\n"
+            "On the fifth day of Christmas\\nMy true love gave to me\\nFive gold rings\\nFour calling birds\\nThree french hens\\nTwo turtle doves\\nAnd a partridge in a pear tree."
         )
 
         # Manually patch stdout to intercept the output
