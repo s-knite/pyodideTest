@@ -1,6 +1,6 @@
 export const challenge = {
     id: 't2c-06-08',
-    title: 'The Twelve Days of Christmas 🎄🎶',
+    title: 'The Twelve Days of Christmas 🎄🦢💍',
     
     instructionsHTML: `
         <p>Write a subprogram named <code>output_song</code> that prints the first 5 verses of <em>The Twelve Days of Christmas</em>.</p>
