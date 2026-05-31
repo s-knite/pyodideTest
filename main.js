@@ -434,6 +434,9 @@ function createTable(jsonString, container) {
 			const cell = document.createElement('td');
 			cell.textContent = obj[header] !== null ? obj[header] : "";
 			cell.style.whiteSpace = "pre-wrap";
+			if (header === "testDescription") {
+				cell.style.fontFamily = "monospace";
+			}
 			row.appendChild(cell);
 		});
 		if (obj.testResult === 'FAILED') {
