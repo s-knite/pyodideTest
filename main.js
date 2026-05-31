@@ -433,6 +433,7 @@ function createTable(jsonString, container) {
 		headers.forEach(header => {
 			const cell = document.createElement('td');
 			cell.textContent = obj[header] !== null ? obj[header] : "";
+			cell.style.whiteSpace = "pre-wrap";
 			row.appendChild(cell);
 		});
 		if (obj.testResult === 'FAILED') {
