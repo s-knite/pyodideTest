@@ -43,8 +43,8 @@ try:
             tester.include_result(f"input_teams Pass 2 crashed: {e}", FAILED)
     else:
         # Explicitly declare the skipped tests if requirements aren't met
-        tester.include_result("input_teams successfully stores the first pass of teams (Skipped - missing function or 'teams' variable).", SKIPPED)
-        tester.include_result("input_teams successfully appends new teams to the existing list (Skipped - missing function or 'teams' variable).", SKIPPED)
+        tester.include_result("test first pass skipped - missing function or 'teams' variable.", SKIPPED)
+        tester.include_result("test second pass skipped - missing function or 'teams' variable.", SKIPPED)
 
 
     # 3. Test draw_teams (Runs multiple times to ensure it doesn't crash)
