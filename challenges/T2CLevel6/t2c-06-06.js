@@ -1,6 +1,6 @@
 export const challenge = {
     id: 't2c-06-06',
-    title: 'Fizz Buzz Challenge 🥤🐝',
+    title: 'Fizz Buzz Challenge 🍾🔢🐝',
     
     instructionsHTML: `
         <p>Write a subprogram named <code>fizz_buzz</code> that accepts a single integer parameter representing the upper limit.</p>
