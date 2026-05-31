@@ -87,9 +87,9 @@ try:
 
     else:
         # Explicitly skip tests if requirements aren't met
-        tester.include_result("play_game correctly handles a clean winning leg for Player 1 (Skipped - missing function or 'score' variable).", SKIPPED)
-        tester.include_result("play_game correctly handles a bust and allows Player 2 to win (Skipped - missing function or 'score' variable).", SKIPPED)
-        tester.include_result("play_game correctly rejects invalid darts without ending the turn (Skipped - missing function or 'score' variable).", SKIPPED)
+        tester.include_result("play_game Player 1 wins (Skipped - missing function or 'score' variable).", SKIPPED)
+        tester.include_result("play_game Player 2 wins (Skipped - missing function or 'score' variable).", SKIPPED)
+        tester.include_result("play_game rejects invalid darts without ending the turn (Skipped - missing function or 'score' variable).", SKIPPED)
 
 except Exception as e:
     tester.results.append({
