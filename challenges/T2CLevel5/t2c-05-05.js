@@ -1,5 +1,3 @@
-// needs extensive testing
-
 export const challenge = {
     id: 't2c-05-05',
     title: 'POCC - Tournament Draw ☕🎲🎫',
@@ -43,6 +41,11 @@ try:
                 tester.include_result(f"input_teams failed to append new teams. Expected 6 teams, Got: {globals()['teams']}", FAILED)
         except Exception as e:
             tester.include_result(f"input_teams Pass 2 crashed: {e}", FAILED)
+    else:
+        # Explicitly declare the skipped tests if requirements aren't met
+        tester.include_result("input_teams successfully stores the first pass of teams (Skipped - missing function or 'teams' variable).", SKIPPED)
+        tester.include_result("input_teams successfully appends new teams to the existing list (Skipped - missing function or 'teams' variable).", SKIPPED)
+
 
     # 3. Test draw_teams (Runs multiple times to ensure it doesn't crash)
     tester.check_function_exists("draw_teams")
@@ -59,6 +62,9 @@ try:
             tester.include_result("draw_teams successfully executes multiple times without crashing.", PASSED)
         except Exception as e:
             tester.include_result(f"draw_teams execution failed or crashed: {e}", FAILED)
+    else:
+        # Explicitly declare the skipped test if requirements aren't met
+        tester.include_result("draw_teams successfully executes multiple times without crashing (Skipped - missing function or 'teams' variable).", SKIPPED)
 
 except Exception as e:
     tester.results.append({
